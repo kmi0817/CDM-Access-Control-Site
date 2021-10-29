@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>CDM</title>
+
+    <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon"> <!-- favicon 없을 때 에러 방지 코드 -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- <link rel="stylesheet" href="../static/upload.css" type="text/css"> -->
+
+    <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css">
+    <!-- <link rel="stylesheet" href="../static/webix.css" type="text/css"> -->
+
+    <link rel="stylesheet" href="//cdn.webix.com/materialdesignicons/5.8.95/css/materialdesignicons.min.css"
+        type="text/css" charset="utf-8">
+    <script src="//cdn.webix.com/edge/webix.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+    <script>
+        webix.ready(() => {
+            webix.ui({
+                rows: [
+                    {
+                        view: "toolbar",
+                        css: { "background-color": "lightgray" },
+                        elements: [
+                            {
+                                view: "button", value: "IRB", width: 100, css: "webix_transparent webix_button",
+                                click: () => { location.href = "/irb" },
+                            },
+                            {
+                                view: "button", value: "Researcher", width: 100, css: "webix_transparent webix_button",
+                                click: () => { location.href = "/researcher-irb" }
+                            },
+                            {
+                                view: "button", value: "Provider", width: 100, css: "webix_transparent webix_button",
+                                click: () => { location.href = "/provider" }
+                            },
+                            {
+                                view: "button", value: "Consumer", width: 100, css: "webix_transparent webix_button",
+                                click: () => { location.href = "/consumer" }
+                            }
+                        ]
+                    },
+                    {
+                        view: "scrollview",
+                        scroll: "y",
+                        body: {
+                            rows: [
+                                {
+                                    view: "toolbar", height: 50,
+                                    elements: [
+                                        {
+                                            view: "button", value: "IRB", width: 100,
+                                            click: () => { location.href = "/irb"; }
+                                        },
+                                        {
+                                            align: "right", body: {
+                                                cols: [
+                                                    {% if IRB_signin %}
+                                                    {
+                                                        view: "button", value: "Sign Out", width: 100,
+                                                        click: () => {
+                                                            webix.ajax().post("/irb/process-signout")
+                                                                .then(() => {
+                                                                    sessinoStorage.clear(); // 로컬 세션 스토리지 모두 삭제
+                                                                    location.reload();
+                                                                })
+                                                                .fail((xhr) => {
+                                                                    var res = JSON.parse(xhr.response);
+                                                                    var msg = "문제 발생: " + res.error.message;
+
+                                                                    alert(msg);
+                                                                });
+                                                        }
+                                                    }
+                                                    {% else %}
+                                                    {
+                                                        view: "button", value: "Sign In", width: 100,
+                                                        click: () => { location.href = ""; }
+                                                    }
+                                                    {% endif %}
+                                                ]
+                                            }
+                                        },
+                                    ]
+                                },
+                                {
+                                    view: "spacer", height: 30
+                                },
+                                {% if IRB_signin %}
+                                {
+                                    align: "center", body: {
+                                        view: "button", value: "Create Invitation", width: 200,
+                                        click: () => {
+                                            // 초대장 받기
+                                            webix.ajax().post("http://0.0.0.0:8011/connections/create-invitation")
+                                                .then((res) => {
+                                                    var invitation = res.json().invitation; // 초대장 받기
+                                                    invitation = JSON.stringify(invitation);
+                                                    sessionStorage.setItem("irb_invitation", invitation); // 초대장 세션 등록
+
+                                                    var connection_id = res.json().connection_id; // connection id 받기
+                                                    sessionStorage.setItem("irb_connection_id", connection_id); // connection id 세션 등록
+
+                                                    // credential definition id 받기
+                                                    webix.ajax().get("http://0.0.0.0:8011/credential-definitions/created")
+                                                        .then((res) => {
+                                                            var ids = res.json().credential_definition_ids;
+                                                            sessionStorage.setItem("irb_creddef_id", ids);
+                                                            
+                                                            //sessionStorage.setItem("irb_creddef_id", `["id1", "id2", "id3"]`);
+                                                            
+                                                            // id에 해당하는 credential-definition을 세션에 등록함
+                                                            ids.forEach((id) => {
+                                                                webix.ajax().get(`http://0.0.0.0:8011/credential-definitions/${id}`)
+                                                                .then((res) => {
+                                                                    sessionStorage.setItem(id, JSON.stringify(res));
+                                                                    alert("Researcher한테 초대장 전송 완료");
+                                                                })
+                                                                .fail((xhr) => {
+                                                                    var res = JSON.parse(xhr.response);
+                                                                    var msg = "문제 발생: " + res.error.message + "\n해당 id의 credential-definition을 가져오는 데 실패했습니다.";
+
+                                                                    alert(msg);
+                                                                })
+                                                            })
+                                                        })
+                                                        .fail((xhr) => {
+                                                            var res = JSON.parse(xhr.response);
+                                                            var msg = "문제 발생: " + res.error.message + "\ncredential-definition id를 가져오는 데 실패했습니다.";
+
+                                                            alert(msg);
+                                                        });
+                                                })
+                                                .fail((xhr) => {
+                                                    alert("초대장을 생성하는 데 실패했습니다.\nIRB 서버 연결 상태를 확인하세요.");
+                                                });
+                                        }
+                                    }
+                                }
+                                {% else %}
+                                {
+                                    align: "center", body: {
+                                        view: "form", id: "signin_form", width: 700,
+                                        elements: [
+                                            {
+                                                view: "text", label: "Email", name: "email", placeholder: "name@domain.com",
+                                                invalidMessage: "Invalid Email address form",
+                                            },
+                                            {
+                                                view: "text", type: "password", label: "Password", name: "password",
+                                                invalidMessage: "Password can not be empty",
+                                            },
+                                            {
+                                                view: "button", value: "Submit", hotkey: "enter",
+                                                click: () => {
+                                                    var form = $$("signin_form");
+                                                    if (form.validate()) {
+                                                        var values = form.getValues();
+                                                        values = JSON.stringify(values);
+
+                                                        webix.ajax().post("/irb/process-signin", values)
+                                                            .then(() => {
+                                                                location.reload();
+                                                            })
+                                                            .fail((xhr) => {
+                                                                var res = JSON.parse(xhr.response);
+                                                                var msg = "문제 발생: " + res.error.message;
+
+                                                                alert(msg);
+                                                            });
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        rules: {
+                                            "email": webix.rules.isEmail,
+                                            "password": webix.rules.isNotEmpty
+                                        }
+                                    }
+                                }
+                                {% endif %}
+                            ]
+                        }
+                    },
+
+                ]
+            })
+
+        })
+    </script>
+</body>
+
+</html>
