@@ -94,18 +94,17 @@
                                                     {
                                                         view: "textarea", id: "credential", readonly: true,
                                                         minHeight: 250, placeholder: "credentail here",
-                                                        value: sessionStorage.getItem("credential")
+                                                        value: `{"credential": "temp credential from researcher to provider"}`
                                                     },
                                                     {
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
-                                                            var credential_body = sessionStorage.getItem("credential");
-                                                            var credential = {"credential" : `${credential_body} credential from Researcher to Provider`}
+                                                            var credential = $$("credential").getValue();
+                                                            credential = JSON.parse(credential);
                                                             credential = JSON.stringify(credential);
-                                                            webix.ajax().post("/provider/receive-credential", credential)
-                                                                .then(() => {
-                                                                    alert("Provider에게 Credential 전송 완료\n이제 Provider 페이지의 Data Selection 메뉴로 이동하세요.");
-                                                                })
+                                                            sessionStorage.setItem("Researcher_cred_to_provider", credential);
+                                                            alert("Consumer에게 Credential을 제시했습니다.\nProvider 페이지의 Data Selection 메뉴로 이동하세요.");
+                                                            // credential 제시 == 로컬 스토리지 세션에 credential 등록
                                                         }
                                                     }
                                                 ]

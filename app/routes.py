@@ -2,6 +2,8 @@ from app import app
 from flask import render_template, redirect, url_for, session, request, json
 import paramiko
 import os.path
+import sys
+
 from base64 import b64decode, b64encode
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -106,6 +108,10 @@ def provider_invitation() :
         cred = True
     return render_template('provider_invitation.html', credential=cred)
 
+@app.route('/provider/credential')
+def provider_credential() :
+    return render_template('provider_credential.html')
+
 @app.route('/provider/data')
 def provider_data() :
     cred = False
@@ -115,7 +121,7 @@ def provider_data() :
 
 @app.route('/provider/receive-credential', methods=['POST'])
 def provider_receive_credential() :
-    credential = request.get_json(force=True)['credential']
+    credential = request.get_json(force=True)
     session['Researcher_cred_to_provider'] = credential
     return credential
 
