@@ -145,14 +145,21 @@ def provider_send_credential() :
 
 @app.route('/consumer')
 @app.route('/consumer/invitation')
-def consumer() :
+def consumer_invitation() :
     signin = False
     cred = False
     if 'Consumer_signin' in session :
         signin = True
-    if 'Provider_cred_to_consumer' in session :
-        cred = True
-    return render_template('consumer_invitation.html', Consumer_signin=signin, credential=cred)
+    # if 'Provider_cred_to_consumer' in session :
+    #     cred = True
+    return render_template('consumer_invitation.html', Consumer_signin=signin)
+
+@app.route('/consumer/credential')
+def consumer_credential() :
+    signin = False
+    if 'Consumer_signin' in session :
+        signin = True
+    return render_template('consumer_credential.html', Consumer_signin=signin)
 
 @app.route('/consumer/process-signin', methods=['POST'])
 def consumer_process_signin() :

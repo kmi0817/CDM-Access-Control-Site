@@ -106,19 +106,11 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
+                                                            credential = JSON.parse(credential);
                                                             credential = JSON.stringify(credential);
-
-                                                            webix.ajax().post("/consumer/receive-credential", credential)
-                                                                .then((res) => {
-                                                                    sessionStorage.setItem("consumer_credential", credential);
-                                                                    alert("Consumer에게 Credential을 제출했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
-                                                                })
-                                                                .fail((xhr) => {
-                                                                    var res = JSON.parse(xhr.response);
-                                                                    var msg = "문제 발생: " + res.error.message + "\nConsumer에게 credential을 제시하는 데 실패했습니다.";
-
-                                                                    alert(msg);
-                                                                });
+                                                            sessionStorage.setItem("consumer_credential", credential);
+                                                            alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
+                                                            // credential 제시 == 로컬 스토리지 세션에 credential 등록
                                                         }
                                                     }
                                                 ]
