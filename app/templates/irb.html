@@ -65,7 +65,7 @@
                                                     {
                                                         view: "button", value: "Sign Out", width: 100,
                                                         click: () => {
-                                                            webix.ajax().sync().post("http://127.0.0.1:5000/irb/process-signout")
+                                                            webix.ajax().sync().post("/irb/process-signout")
                                                             sessionStorage.clear(); // 로컬 세션 스토리지 모두 삭제
                                                             location.reload();
                                                             // webix.ajax().post("/irb/process-signout")
