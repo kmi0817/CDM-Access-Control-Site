@@ -21,6 +21,7 @@
 
 <body>
     <script>
+        {% if credential %}
         webix.ready(() => {
             webix.ui({
                 rows: [
@@ -91,22 +92,20 @@
                                                 elements: [
                                                     {
                                                         cols: [
-                                                            { view: "search", id: "search", placeholder: "data name", width: 420, hotkey: "enter" },
+                                                            { view: "search", id: "search", placeholder: "data name", width: 520, hotkey: "enter" },
                                                             {
-                                                                view: "button", value: "Select this data", autowidth: true, css: "webix_primary webix_button",
+                                                                view: "button", value: "Select this data",
+                                                                autowidth: true, css: "webix_primary webix_button",
                                                                 click: () => {
                                                                     var selectedFile = $$("dataView").getSelectedItem().title; // 선택한 아이템 제목 가져오기
-
                                                                     sessionStorage.setItem("file", selectedFile); // 선택한 파일 제목 세션에 저장
-
-                                                                    webix.message("Selected Data is " + selectedFile);
-                                                                    webix.message({ type: "debug", text: "Now move to Consumer in order to sign in" });
 
                                                                     var values = { "file": selectedFile }; // JSON 형태
                                                                     values = JSON.stringify(values); // JSON으로 만들기
 
-                                                                    // SFTP 서버로부터 파일 선택하여 로컬에 저장하고, credential 만들기
-                                                                    webix.ajax().post("http://127.0.0.1:5000/provider/send-credential", values);
+                                                                    // SFTP 서버로부터 파일 선택하여 로컬에 저장하고, 선택한 파일을 credential로 만들기
+                                                                    webix.ajax().sync().post("/provider/send-credential", values);
+                                                                    alert("Provider가 당신이 선택한 데이터를 Consumer에게 전송하였습니다.\n이제 Consumer 페이지로 이동하세요.");
                                                                 }
                                                             },
                                                         ]
@@ -138,9 +137,21 @@
                         }
                     }
                 ]
-            })
+            });
 
-        })
+            /* 검색 기능 구현 */
+            $$("search").attachEvent("onTimedKeyPress", () => {
+                var value = $$("search").getValue().toLowerCase();
+                $$("dataView").filter((obj) => {
+                    return obj.title.toLowerCase().indexOf(value) != -1;
+                })
+            });
+
+        });
+        {% else %}
+        alert("Researcher의 Credential을 다시 발급하십시오.\n메인 화면으로 돌아갑니다.");
+        location.href="/provider";
+        {% endif %}
     </script>
 </body>
 

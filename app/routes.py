@@ -48,6 +48,19 @@ def researcher_irb_accept_invitation() :
     session['IRB_inv'] = values
     return 'Researcher accepts IRB invitation'
 
+@app.route('/researcher-provider')
+def researcher_provider() :
+    inv = False
+    if 'Provider_inv' in session :
+        inv = True
+    return render_template('researcher_provider.html', Provider_inv=inv)
+
+@app.route('/researcher-provider/accpet-invitation', methods=['POST'])
+def researcher_provider_accept_invitation() :
+    values = request.get_json(force=True)
+    session['Provider_inv'] = values
+    return 'Researcher accepts Provider invitation'
+
 
 
 
@@ -55,8 +68,24 @@ def researcher_irb_accept_invitation() :
 @app.route('/provider')
 @app.route('/provider/invitation')
 def provider_invitation() :
-    return render_template('provider_invitation.html')
+    cred = False
+    if 'Researcher_cred_to_provider' in session :
+        cred = True
+    return render_template('provider_invitation.html', credential=cred)
 
 @app.route('/provider/data')
 def provider_data() :
-    return render_template('provider_data.html')
+    cred = False
+    if 'Researcher_cred_to_provider' in session :
+        cred = True
+    return render_template('provider_data.html', credential=cred)
+
+@app.route('/provider/receive-credential', methods=['POST'])
+def provider_receive_credential() :
+    credential = request.get_json(force=True)['credential']
+    session['Researcher_cred_to_provider'] = credential
+    return credential
+
+@app.route('/provider/send-credential', methods=['POST'])
+def provider_send_credential() :
+    return 'temp'

@@ -68,7 +68,13 @@
                                                     },
                                                     {
                                                         view: "button", value: "Data Selection", width: 150,
-                                                        click: () => { location.href="/provider/data"; }
+                                                        click: () => {
+                                                            {% if credential %}
+                                                            location.href="/provider/data";
+                                                            {% else %}
+                                                            alert("Researcher의 Credential 필요합니다.");
+                                                            {% endif %}
+                                                        }
                                                     }
                                                 ]
                                             }
