@@ -74,6 +74,26 @@ def researcher_provider_accept_invitation() :
     session['Provider_inv'] = values
     return 'Researcher accepts Provider invitation'
 
+@app.route('/researcher-consumer')
+def researcher_consumer() :
+    inv = False
+    if 'Consumer_inv' in session :
+        inv = True
+    
+    # credential 읽어오기
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = os.path.join(current_path, 'app', "file", "credential.json") # 경로 병합해 새 경로 생성
+    f = open(file_path, 'r')
+    credential = f.read()
+
+    return render_template('researcher_consumer.html', Consumer_inv=inv, credential=credential)
+
+@app.route('/researcher-consumer/accpet-invitation', methods=['POST'])
+def researcher_consumer_accept_invitation() :
+    values = request.get_json(force=True)
+    session['Consumer_inv'] = values
+    return 'Researcher accepts Consumer invitation'
+
 
 
 
@@ -124,6 +144,7 @@ def provider_send_credential() :
 
 
 @app.route('/consumer')
+@app.route('/consumer/invitation')
 def consumer() :
     signin = False
     cred = False
@@ -131,7 +152,7 @@ def consumer() :
         signin = True
     if 'Provider_cred_to_consumer' in session :
         cred = True
-    return render_template('consumer.html', Consumer_signin=signin, credential=cred)
+    return render_template('consumer_invitation.html', Consumer_signin=signin, credential=cred)
 
 @app.route('/consumer/process-signin', methods=['POST'])
 def consumer_process_signin() :
@@ -150,10 +171,11 @@ def consumer_process_signout() :
     session.clear() # 모든 파이썬 세션 삭제
     return 'consumer Sign Out'
 
-@app.route('/consumer/accept-credential', methods=['POST'])
-def consumer_accept_credential() :
-    session['Provider_cred_to_consumer'] = True
-    return 'Consumer accept Provider credential'
+@app.route('/consumer/receive-credential', methods=['POST'])
+def consumer_receive_credential() :
+    credential = request.get_json(force=True)['consumer_credential']
+    session['Researcher_cred_to_consumer'] = credential
+    return credential
 
 
 
