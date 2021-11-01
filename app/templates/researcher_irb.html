@@ -55,20 +55,23 @@
                                     view: "toolbar", height: 50,
                                     elements: [
                                         {
-                                            view: "button", value: "IRB", width: 100,
-                                            click: () => { location.href = "/irb"; }
+                                            view: "button", value: "Researcher", width: 100,
+                                            click: () => { location.href = "/researcher-irb"; }
                                         },
                                         {
                                             align: "right", body: {
                                                 cols: [
                                                     {
-                                                        view: "button", value: "IRB connection", width: 200
+                                                        view: "button", value: "IRB connection", width: 200,
+                                                        click: () => { location.href="/researcher-irb"; }
                                                     },
                                                     {
-                                                        view: "button", value: "Provider connection", width: 200
+                                                        view: "button", value: "Provider connection", width: 200,
+                                                        click: () => { location.href="/researcher-provider"; }
                                                     },
                                                     {
-                                                        view: "button", value: "Consumer connection", width: 200
+                                                        view: "button", value: "Consumer connection", width: 200,
+                                                        click: () => { location.href="/researcher-consumer"; }
                                                     }
                                                 ]
                                             }
@@ -159,7 +162,7 @@
                                                                     res = res.json();
                                                                     sessionStorage.setItem("irb_did", res.my_did);
 
-                                                                    webix.ajax().post("http://127.0.0.1:5000/researcher-irb/accpet-invitation", invitation)
+                                                                    webix.ajax().post("/researcher-irb/accpet-invitation", invitation)
                                                                         .then((res) => {
                                                                             location.reload();
                                                                         })
@@ -192,10 +195,6 @@
                     },
                 ]
             });
-
-            function getInvitation() {
-                
-            }
         });
     </script>
 </body>
