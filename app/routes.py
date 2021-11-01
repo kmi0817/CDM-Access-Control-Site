@@ -160,8 +160,6 @@ def consumer_invitation() :
     cred = False
     if 'Consumer_signin' in session :
         signin = True
-    # if 'Provider_cred_to_consumer' in session :
-    #     cred = True
     return render_template('consumer_invitation.html', Consumer_signin=signin)
 
 @app.route('/consumer/credential')
@@ -185,7 +183,7 @@ def consumer_process_signin() :
 
 @app.route('/consumer/process-signout', methods=['POST'])
 def consumer_process_signout() :
-    session.clear() # 모든 파이썬 세션 삭제
+    session.pop('Consumer_signin', None)
     return 'consumer Sign Out'
 
 @app.route('/consumer/receive-credential', methods=['POST'])

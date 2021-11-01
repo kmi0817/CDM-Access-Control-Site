@@ -73,8 +73,17 @@
                                                     {
                                                         view: "button", value: "Sign Out", width: 100,
                                                         click: () => {
+                                                            // consumer connection 끊기
+                                                            if (sessionStorage.getItem("consumer_connection_id")) {
+                                                                var id = sessionStorage.getItem("consumer_connection_id");
+                                                                webix.ajax().sync().del(`http://0.0.0.0:8061/connections/${id}`);
+                                                            }
+
                                                             webix.ajax().sync().post("/consumer/process-signout")
-                                                            sessionStorage.clear(); // 로컬 세션 스토리지 모두 삭제
+                                                            sessionStorage.removeItem("consumer_invitation");
+                                                            sessionStorage.removeItem("consumer_connection_id");
+                                                            sessionStorage.removeItem("consumer_did");
+                                                            sessionStorage.removeItem("Researcher_cred_to_consumer");
                                                             location.reload();
                                                         }
                                                     }

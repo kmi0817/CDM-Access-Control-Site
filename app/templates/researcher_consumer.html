@@ -115,7 +115,7 @@
                                                             var credential = $$("credential").getValue();
                                                             credential = JSON.parse(credential);
                                                             credential = JSON.stringify(credential);
-                                                            sessionStorage.setItem("consumer_credential", credential);
+                                                            sessionStorage.setItem("Researcher_cred_to_consumer", credential);
                                                             alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
                                                             // credential 제시 == 로컬 스토리지 세션에 credential 등록
                                                         }

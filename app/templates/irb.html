@@ -65,20 +65,27 @@
                                                     {
                                                         view: "button", value: "Sign Out", width: 100,
                                                         click: () => {
+                                                            // IRB connection 끊기
+                                                            if (sessionStorage.getItem("irb_connection_id")) {
+                                                                var id = sessionStorage.getItem("irb_connection_id");
+                                                                webix.ajax().sync().del(`http://0.0.0.0:8011/connections/${id}`);
+                                                            }
+
+                                                            // provider connection 끊기
+                                                            if (sessionStorage.getItem("provider_connection_id")) {
+                                                                var id = sessionStorage.getItem("provider_connection_id");
+                                                                webix.ajax().sync().del(`http://0.0.0.0:8051/connections/${id}`);
+                                                            }
+
+                                                            // consumer connection 끊기
+                                                            if (sessionStorage.getItem("consumer_connection_id")) {
+                                                                var id = sessionStorage.getItem("consumer_connection_id");
+                                                                webix.ajax().sync().del(`http://0.0.0.0:8061/connections/${id}`);
+                                                            }
+
                                                             webix.ajax().sync().post("/irb/process-signout")
                                                             sessionStorage.clear(); // 로컬 세션 스토리지 모두 삭제
                                                             location.reload();
-                                                            // webix.ajax().post("/irb/process-signout")
-                                                            //     .then(() => {
-                                                            //         sessinoStorage.clear(); // 로컬 세션 스토리지 모두 삭제
-                                                            //         location.reload();
-                                                            //     })
-                                                            //     .fail((xhr) => {
-                                                            //         var res = JSON.parse(xhr.response);
-                                                            //         var msg = "문제 발생: " + res.error.message;
-
-                                                            //         alert(msg);
-                                                            //     });
                                                         }
                                                     }
                                                     {% else %}
