@@ -89,10 +89,11 @@
                                                 template: "<h2>Provider connection</h2>", width: 700, autoheight: true
                                             },
                                             {
-                                                view: "form", id: "credential_form", width: 600,
+                                                view: "form", id: "credential_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", id: "credential", minHeight: 250, placeholder: "credentail here",
+                                                        view: "textarea", id: "credential", readonly: true,
+                                                        minHeight: 250, placeholder: "credentail here",
                                                         value: sessionStorage.getItem("credential")
                                                     },
                                                     {
@@ -103,7 +104,7 @@
                                                             credential = JSON.stringify(credential);
                                                             webix.ajax().post("/provider/receive-credential", credential)
                                                                 .then(() => {
-                                                                    alert("Provider에게 Credential 전송 완료\n이제 Provider 페이지의 data로 이동하세요.");
+                                                                    alert("Provider에게 Credential 전송 완료\n이제 Provider 페이지의 Data Selection 메뉴로 이동하세요.");
                                                                 })
                                                         }
                                                     }

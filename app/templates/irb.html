@@ -123,7 +123,7 @@
                                                                 webix.ajax().get(`http://0.0.0.0:8011/credential-definitions/${id}`)
                                                                 .then((res) => {
                                                                     sessionStorage.setItem(id, JSON.stringify(res));
-                                                                    alert("Researcher한테 초대장 전송 완료\n이제 Researcher 페이지로 이동하세요.");
+                                                                    alert("Researcher한테 초대장을 전송했습니다.\n이제 Researcher 페이지로 이동하세요.");
                                                                 })
                                                                 .fail((xhr) => {
                                                                     var res = JSON.parse(xhr.response);
