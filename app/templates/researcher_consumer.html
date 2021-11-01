@@ -99,15 +99,13 @@
                                                     },
                                                     {
                                                         view: "textarea", id: "credential", readonly: true,
-                                                        minHeight: 250, placeholder: "credentail here",
+                                                        minHeight: 250, placeholder: "credential here",
                                                         value: `{{credential}}`
                                                     },
                                                     {
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            credential = JSON.parse(credential);
-                                                            credential = {"credential": credential};
                                                             credential = JSON.stringify(credential);
 
                                                             webix.ajax().post("/consumer/receive-credential", credential)

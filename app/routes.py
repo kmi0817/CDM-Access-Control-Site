@@ -173,7 +173,7 @@ def consumer_process_signout() :
 
 @app.route('/consumer/receive-credential', methods=['POST'])
 def consumer_receive_credential() :
-    credential = request.get_json(force=True)['consumer_credential']
+    credential = request.get_json(force=True)
     session['Researcher_cred_to_consumer'] = credential
     return credential
 
