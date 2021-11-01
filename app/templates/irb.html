@@ -164,7 +164,7 @@
                                             }
                                         ]
                                     }
-                                }
+                                },
                                 {% else %}
                                 {
                                     align: "center", body: {
@@ -205,8 +205,11 @@
                                             "password": webix.rules.isNotEmpty
                                         }
                                     }
-                                }
+                                },
                                 {% endif %}
+                                {
+                                    view: "spacer", height: 30
+                                }
                             ]
                         }
                     },
