@@ -21,7 +21,6 @@
 
 <body>
     <script>
-        {% if credential %}
         webix.ready(() => {
             webix.ui({
                 rows: [
@@ -91,6 +90,7 @@
                                                 template: "<h2>Provider Data Selection</h2>",
                                                 width: 700, autoheight: true
                                             },
+                                            {% if credential %}
                                             {
                                                 view: "form", id: "dataSelect_form", width: 700, height: 600,
                                                 elements: [
@@ -131,6 +131,11 @@
                                                     }
                                                 ]
                                             },
+                                            {% else %}
+                                            {
+                                                template: "<h3>Researcher의 Credential을 다시 발급하십시오.</h3>", width: 700, autoheight: true
+                                            },
+                                            {% endif %}
                                             {
                                                 view: "spacer", height: 30
                                             }
@@ -152,10 +157,6 @@
             });
 
         });
-        {% else %}
-        alert("Researcher의 Credential을 다시 발급하십시오.\n메인 화면으로 돌아갑니다.");
-        location.href="/provider";
-        {% endif %}
     </script>
 </body>
 
