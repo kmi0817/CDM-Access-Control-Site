@@ -123,6 +123,40 @@ def provider_send_credential() :
 
 
 
+@app.route('/consumer')
+def consumer() :
+    signin = False
+    cred = False
+    if 'Consumer_signin' in session :
+        signin = True
+    if 'Provider_cred_to_consumer' in session :
+        cred = True
+    return render_template('consumer.html', Consumer_signin=signin, credential=cred)
+
+@app.route('/consumer/process-signin', methods=['POST'])
+def consumer_process_signin() :
+    values = request.get_json(force=True)
+    email = values['email']
+    password = values['password']
+
+    if (root_email == email and root_password == password) :
+        session['Consumer_signin'] = True
+        return redirect(url_for('consumer'))
+    else :
+        return '<script>alert("Check Inputs");</script>'
+
+@app.route('/consumer/process-signout', methods=['POST'])
+def consumer_process_signout() :
+    session.clear() # 모든 파이썬 세션 삭제
+    return 'consumer Sign Out'
+
+@app.route('/consumer/accept-credential', methods=['POST'])
+def consumer_accept_credential() :
+    session['Provider_cred_to_consumer'] = True
+    return 'Consumer accept Provider credential'
+
+
+
 
 
 
