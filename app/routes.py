@@ -103,20 +103,23 @@ def researcher_consumer_accept_invitation() :
 @app.route('/provider')
 @app.route('/provider/invitation')
 def provider_invitation() :
-    return render_template('provider_invitation.html')
+    cred = False
+    if 'Researcher_cred_to_provider' in session :
+        cred = True
+    return render_template('provider_invitation.html', credential=cred)
 
 @app.route('/provider/credential')
 def provider_credential() :
-    return render_template('provider_credential.html')
+    cred = False
+    if 'Researcher_cred_to_provider' in session :
+        cred = True
+    return render_template('provider_credential.html', credential=cred)
 
 @app.route('/provider/data')
 def provider_data() :
     cred = False
-    print(session['Researcher_cred_to_provider'], file=sys.stdout)
-    
     if 'Researcher_cred_to_provider' in session :
         cred = True
-        print(session['Researcher_cred_to_provider'], file=sys.stdout)
 
     return render_template('provider_data.html', credential=cred)
 
@@ -124,7 +127,6 @@ def provider_data() :
 def provider_receive_credential() :
     credential = request.get_json(force=True)
     session['Researcher_cred_to_provider'] = credential
-    print(session['Researcher_cred_to_provider'], file=sys.stdout)
     return credential
 
 @app.route('/provider/send-credential', methods=['POST'])
