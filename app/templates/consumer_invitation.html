@@ -156,7 +156,7 @@
                                                     if (form.validate()) {
                                                         var values = form.getValues();
                                                         values = JSON.stringify(values);
-                                                        console.log(values);
+
                                                         webix.ajax().post("/consumer/process-signin", values)
                                                             .then(() => {
                                                                 location.reload();

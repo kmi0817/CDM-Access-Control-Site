@@ -179,7 +179,7 @@ def consumer_process_signin() :
 
     if (root_email == email and root_password == password) :
         session['Consumer_signin'] = True
-        return redirect(url_for('consumer'))
+        return redirect(url_for('consumer_invitation'))
     else :
         return '<script>alert("Check Inputs");</script>'
 
