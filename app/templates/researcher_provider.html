@@ -92,9 +92,22 @@
                                                 view: "form", id: "credential_form", width: 700,
                                                 elements: [
                                                     {
+                                                        view: "textarea", readonly: true,
+                                                        label: "DID", labelPosition: "top",
+                                                        value: sessionStorage.getItem("provider_did"),
+                                                        placeholder: "DID here"
+                                                    },
+                                                    {
+                                                        view: "spacer", height: 20
+                                                    },
+                                                    {
                                                         view: "textarea", id: "credential", readonly: true,
+                                                        label: "Credential", labelPosition: "top",
                                                         minHeight: 250, placeholder: "credentail here",
                                                         value: `{"credential": "temp credential from researcher to provider"}`
+                                                    },
+                                                    {
+                                                        view: "spacer", height: 20
                                                     },
                                                     {
                                                         view: "button", value: "Present Credential",
