@@ -47,3 +47,16 @@ def researcher_irb_accept_invitation() :
     values = request.get_json(force=True)
     session['IRB_inv'] = values
     return 'Researcher accepts IRB invitation'
+
+
+
+
+
+@app.route('/provider')
+@app.route('/provider/invitation')
+def provider_invitation() :
+    return render_template('provider_invitation.html')
+
+@app.route('/provider/data')
+def provider_data() :
+    return render_template('provider_data.html')
