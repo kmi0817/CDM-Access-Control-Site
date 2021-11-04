@@ -8,7 +8,7 @@
     <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon"> <!-- favicon 없을 때 에러 방지 코드 -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.4.1.js"></script> -->
     <!-- <link rel="stylesheet" href="../static/upload.css" type="text/css"> -->
 
     <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css">
@@ -104,7 +104,7 @@
                                                     {
                                                         view: "text", readonly: true,
                                                         label: "Credential-definition Id", labelPosition: "top",
-                                                        value: sessionStorage.getItem("credential_definition_id")
+                                                        value: sessionStorage.getItem("credential_definition_id") + " || 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema"
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -123,31 +123,48 @@
                                                         click: () => {
                                                             const CRED_PREVIEW_TYPE = "https://didcomm.org/issue-credential/2.0/credential-preview"
                                                             const timestamp = + new Date();
-                                                            // const credential_attributes = {
-                                                            //     "name": "Researcher",
-                                                            //     "affiliation": "CNUH",
-                                                            //     "role": "PI",
-                                                            //     "GCP": "1",
-                                                            //     "IRB_no": "2021-0008",
-                                                            //     "approved_date": "2021-03-28",
-                                                            //     "timestamp": String(timestamp)
-                                                            // }
 
                                                             const cred_preview = {
                                                                 "@type": CRED_PREVIEW_TYPE,
                                                                 "attributes": [
-                                                                    {"name": "Researcher"},
-                                                                    {"affiliation": "CNUH"},
-                                                                    {"role": "PI"},
-                                                                    {"GCP": "1"},
-                                                                    {"IRB_no": "2021-0008"},
-                                                                    {"approved_date": "2021-03-28"},
-                                                                    {"timestamp": String(timestamp)}
+                                                                    {"name": "name", "value": "Alice"},
+                                                                    {"name": "affiliation", "value": "CNUH"},
+                                                                    {"name": "role", "value": "PI"},
+                                                                    {"name": "GCP", "value": "1"},
+                                                                    {"name": "IRB_no", "value": "2021-0008"},
+                                                                    {"name": "approved_date", "value": "2021-03-28"},
+                                                                    {"name": "timestamp", "value": String(timestamp)}
                                                                 ],
                                                             }
-                                                            console.log(cred_preview);
-                                                            // alert("Credential-definition 선택 완료\n이제 Provider로 이동하세요.");
-                                                                // alert("Credential-definition을 선택하세요.");
+
+                                                            var conn_id = sessionStorage.getItem("irb_connection_id");
+                                                            // var cred_def_id = sessionStorage.getItem("credential_definition_id");
+                                                            // 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema
+
+                                                            offer_request = {
+                                                                "connection_id": conn_id,
+                                                                "comment": `Offer on cred def id 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema`,
+                                                                "auto_remove": false,
+                                                                "credential_preview": cred_preview,
+                                                                "filter": {"indy": {"cred_def_id": "3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema"}},
+                                                                "trace": false,
+                                                            }
+
+                                                            offer_request = JSON.stringify(offer_request);
+                                                            $.ajax({
+                                                                type: "post",
+                                                                url: "http://0.0.0.0:8011/issue-credential-2.0/send-offer",
+                                                                data: offer_request,
+                                                                contentType: "application/json",
+                                                                success: (res) => {
+                                                                    $$("credential").setValue(JSON.stringify(res));
+                                                                    sessionStorage.setItem("credential", JSON.stringify(res));
+                                                                    alert("IRB로부터 credential 발급 완료\n이제 Provider로 이동하여 초대장을 발급받으세요.");
+                                                                },
+                                                                error: () => {
+                                                                    alert("IRB: issue-credential-2.0/send-offer 문제 발생");
+                                                                }
+                                                            });
                                                         }
                                                     }
                                                 ]

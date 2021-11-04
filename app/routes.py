@@ -63,7 +63,8 @@ def researcher_irb_accept_invitation() :
     credential_definition_id = values['credential_definition_id']
     session['IRB_inv'] = credential_definition_id
 
-    response = requests.get(f'http://0.0.0.0:8011/credential-definitions/{credential_definition_id}')
+    response = requests.get(f'http://0.0.0.0:8011/credential-definitions/created')
+    print(response.json(), file=sys.stdout)
     return 'Researcher accepts IRB invitation'
 
 @app.route('/researcher-provider')
