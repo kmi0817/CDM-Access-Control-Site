@@ -3,7 +3,7 @@
 1. 설치 내용
 ```
 pip3 install paramiko
-pip3 install ...
+pip3 install requests
 ```
 
 2. 사용자에 따라 변경 가능해야 하는 내용
