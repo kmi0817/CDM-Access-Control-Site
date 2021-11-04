@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, session, request, json
 import paramiko
 import os.path
 import sys
-
+import requests
 from base64 import b64decode, b64encode
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
@@ -60,7 +60,10 @@ def researcher_irb() :
 @app.route('/researcher-irb/accept-invitation', methods=['POST'])
 def researcher_irb_accept_invitation() :
     values = request.get_json(force=True)
-    session['IRB_inv'] = values
+    credential_definition_id = values['credential_definition_id']
+    session['IRB_inv'] = credential_definition_id
+
+    response = requests.get(f'http://0.0.0.0:8011/credential-definitions/{credential_definition_id}')
     return 'Researcher accepts IRB invitation'
 
 @app.route('/researcher-provider')

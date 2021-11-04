@@ -49,7 +49,7 @@
                     },
                     {
                         view: "scrollview",
-                        scroll: "y",
+                        scroll: "auto",
                         body: {
                             rows: [
                                 {
@@ -93,7 +93,7 @@
                                                 view: "form", id: "irb_invitation_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", readonly: true,
+                                                        view: "text", readonly: true,
                                                         label: "DID", labelPosition: "top",
                                                         value: sessionStorage.getItem("irb_did"),
                                                         placeholder: "DID here"
@@ -102,23 +102,18 @@
                                                         view: "spacer", height: 20
                                                     },
                                                     {
-                                                        view: "radio", id: "radio",
-                                                        label: "Credential-definition Ids", labelPosition: "top",
-                                                        options: ["hi", "Hi"], vertical: true,
-                                                        click: () => {
-                                                            var id = $$("radio").getValue();
-                                                            var cred_def = sessionStorage.getItem(id);
-                                                            $$("credential_definition").setValue(cred_def);
-                                                        }
+                                                        view: "text", readonly: true,
+                                                        label: "Credential-definition Id", labelPosition: "top",
+                                                        value: sessionStorage.getItem("credential_definition_id")
                                                     },
                                                     {
                                                         view: "spacer", height: 20
                                                     },
                                                     {
-                                                        view: "textarea", id: "credential_definition", readonly: true,
-                                                        label: "Credential-definition", labelPosition: "top",
+                                                        view: "textarea", id: "credential", readonly: true,
+                                                        label: "Credential", labelPosition: "top",
                                                         height: 400, scroll: "y",
-                                                        placeholder: "Selected Credential-definition here"
+                                                        placeholder: "Credential here"
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -126,11 +121,33 @@
                                                     {
                                                         view: "button", value: "Submit",
                                                         click: () => {
-                                                            if ($$("radio").getValue()) {
-                                                                alert("Credential-definition 선택 완료\n이제 Provider로 이동하세요.");
-                                                            } else {
-                                                                alert("Credential-definition을 선택하세요.");
+                                                            const CRED_PREVIEW_TYPE = "https://didcomm.org/issue-credential/2.0/credential-preview"
+                                                            const timestamp = + new Date();
+                                                            // const credential_attributes = {
+                                                            //     "name": "Researcher",
+                                                            //     "affiliation": "CNUH",
+                                                            //     "role": "PI",
+                                                            //     "GCP": "1",
+                                                            //     "IRB_no": "2021-0008",
+                                                            //     "approved_date": "2021-03-28",
+                                                            //     "timestamp": String(timestamp)
+                                                            // }
+
+                                                            const cred_preview = {
+                                                                "@type": CRED_PREVIEW_TYPE,
+                                                                "attributes": [
+                                                                    {"name": "Researcher"},
+                                                                    {"affiliation": "CNUH"},
+                                                                    {"role": "PI"},
+                                                                    {"GCP": "1"},
+                                                                    {"IRB_no": "2021-0008"},
+                                                                    {"approved_date": "2021-03-28"},
+                                                                    {"timestamp": String(timestamp)}
+                                                                ],
                                                             }
+                                                            console.log(cred_preview);
+                                                            // alert("Credential-definition 선택 완료\n이제 Provider로 이동하세요.");
+                                                                // alert("Credential-definition을 선택하세요.");
                                                         }
                                                     }
                                                 ]
@@ -163,20 +180,18 @@
                                                                     res = res.json();
                                                                     sessionStorage.setItem("irb_did", res.my_did);
 
-                                                                    webix.ajax().post("/researcher-irb/accept-invitation", invitation)
+                                                                    var values = JSON.stringify({"credential_definition_id" : sessionStorage.getItem("credential_definition_id")});
+                                                                    console.log(values);
+                                                                    webix.ajax().post("/researcher-irb/accept-invitation", values)
+                                                                        .then((res) => {
                                                                             location.reload();
                                                                         })
                                                                         .fail((xhr) => {
-                                                                            var msg = "문제 발생: 초대장 세션을 등록하지 못하였습니다.";
-
-                                                                            alert(msg);
+                                                                            alert("문제 발생: 초대장 세션을 등록하지 못하였습니다.");
                                                                         })
                                                                 })
                                                                 .fail((xhr) => {
-                                                                    var res = JSON.parse(xhr.response);
-                                                                    var msg = "문제 발생: Researcher 서버 상태를 확인해주세요.";
-
-                                                                    alert(msg);
+                                                                    alert("문제 발생: Researcher 서버 상태를 확인해주세요.");
                                                                 });
                                                         }
                                                     }
