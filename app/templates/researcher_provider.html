@@ -101,10 +101,34 @@
                                                         view: "spacer", height: 20
                                                     },
                                                     {
+                                                        view: "radio", id: "radio", vertical: true,
+                                                        label: "Cred_ex_ids", labelPosition: "top",
+                                                        // options: sessionStorage.getItem("cred_ex_ids")
+                                                        options: ["9fc22e9c-e8e8-4c8b-8348-7944c75641e1","fc3c8edf-45ce-4980-b0f0-76caab149c60","6126b3c9-95d8-42cd-b3e2-9abce57ba807","de74c7dd-7956-40ac-b57d-aae87953dcfc","0bf89bd4-ff17-47a2-83f6-bcd1a67b7a8b","afaa55dd-2538-43d0-b474-93065e8705a9","6c1f9de4-2da7-42fd-a475-06c66424ae89","e048dbd7-3188-4fff-b173-3c37a36c1f71","41c33473-7503-45d9-95a4-f75c365c69b7","7df0f149-b1ae-4709-8805-d1b66b546cb1","ddb20e3c-6601-422d-9887-8c505c88e286","60f55095-2cee-4fd9-8d49-19a20b0e65ac"],
+                                                        click: () => {
+                                                            var selected = $$("radio").getValue();
+
+                                                            webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${selected}`)
+                                                                .then((res) => {
+                                                                    var result = res.json();
+                                                                    result = result["cred_ex_record"]["cred_offer"]["credential_preview"];
+                                                                    result = result["attributes"];
+                                                                    
+                                                                    $$("credential").setValue(JSON.stringify(result));
+                                                                })
+                                                                .fail((xhr) => {
+                                                                    alert("해당 credential record를 가져올 수 없습니다.");
+                                                                })
+                                                        }
+                                                    },
+                                                    {
+                                                        view: "spacer", height: 20
+                                                    },
+                                                    {
                                                         view: "textarea", id: "credential", readonly: true,
                                                         label: "Credential", labelPosition: "top",
-                                                        minHeight: 250, placeholder: "credentail here",
-                                                        value: `{"credential": "temp credential from researcher to provider"}`
+                                                        height: 400, scroll: "y",
+                                                        placeholder: "credentail here",
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -113,11 +137,14 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            credential = JSON.parse(credential);
-                                                            credential = JSON.stringify(credential);
-                                                            sessionStorage.setItem("Researcher_cred_to_provider", credential);
-                                                            alert("Consumer에게 Credential을 제시했습니다.\nProvider 페이지의 Data Selection 메뉴로 이동하세요.");
-                                                            // credential 제시 == 로컬 스토리지 세션에 credential 등록
+
+                                                            webix.ajax().post("/provider/receive-credential", JSON.stringify(credential))
+                                                                .then((res) => {
+                                                                    alert("Consumer에게 Credential을 제시했습니다. (따로 로컬 스토리지 세션 처리X swagger API도 사용X)\nProvider 페이지의 Data Selection 메뉴로 이동하세요.");
+                                                                })
+                                                                .fail((xhr) => {
+                                                                    alert("Provider에게 Credential을 제시하는 데 실패했습니다.");
+                                                                })
                                                         }
                                                     }
                                                 ]
@@ -150,22 +177,37 @@
                                                                     res = res.json();
                                                                     sessionStorage.setItem("provider_did", res.my_did);
 
-                                                                    webix.ajax().post("/researcher-provider/accept-invitation", invitation)
+                                                                    webix.ajax().get("http://0.0.0.0:8031/issue-credential-2.0/records")
                                                                         .then((res) => {
-                                                                            location.reload();
+                                                                            const records = res.json()["results"]
+                                                                            var cred_ex_ids_arr = new Array();
+                                                                            records.forEach((item) => {
+                                                                                cred_ex_ids_arr.push(item["cred_ex_record"]["cred_ex_id"]);
+                                                                            });
+
+                                                                            var cred_ex_ids = "[";
+                                                                            cred_ex_ids_arr.forEach((item) => {
+                                                                                cred_ex_ids += `"${item}",`;
+                                                                            });
+                                                                            
+                                                                            cred_ex_ids = cred_ex_ids.slice(0, -1);
+                                                                            cred_ex_ids += "]"
+                                                                            sessionStorage.setItem("cred_ex_ids", cred_ex_ids);
+
+                                                                            webix.ajax().post("/researcher-provider/accept-invitation", invitation)
+                                                                                .then((res) => {
+                                                                                    location.reload();
+                                                                                })
+                                                                                .fail((xhr) => {
+                                                                                    alert("Provider의 초대장을 로컬 스토리지 세션에 등록하지 못하였습니다.");
+                                                                                });
                                                                         })
                                                                         .fail((xhr) => {
-                                                                            var res = JSON.parse(xhr.response);
-                                                                            var msg = "문제 발생: " + res.error.message + "\n초대장 세션을 등록하지 못하였습니다.";
-
-                                                                            alert(msg);
-                                                                        })
+                                                                            alert("wallet에서 credential records를 가져오는 데 실패했습니다.");
+                                                                        });
                                                                 })
                                                                 .fail((xhr) => {
-                                                                    var res = JSON.parse(xhr.response);
-                                                                    var msg = "문제 발생: " + res.error.message + "\nResearcher 서버 상태를 확인해주세요.";
-
-                                                                    alert(msg);
+                                                                    alert("Researcher 서버 상태를 확인해주세요.");
                                                                 });
                                                         }
                                                     }
