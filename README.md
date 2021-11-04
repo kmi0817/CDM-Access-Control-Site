@@ -6,10 +6,16 @@ pip3 install paramiko
 pip3 install requests
 ```
 
-2. 사용자에 따라 변경 가능해야 하는 내용
+2. SFTP 폴더
+```
+1) provider SFTP 경로: /repo_list/provider
+2) consumer SFTP 경로: /repo_list/consumer
+```
+
+3. 사용자에 따라 변경 가능해야 하는 내용
 - SFTP 포트, 아이디, 비밀번호, 경로 (모두 routes.py 파일에서 수정 가능)
 
-3. 수정할 내용
+4. 수정할 내용
 - (1)
 - Researcher가 선택한 데이터를, Provider의 SFTP에서 Consumer의 SFTP로 넘기기 전 credential (암호화) 과정
 - 암호화에 필요한 함수를 외부 모듈로 생성하고자 함 (security.py 내에)
