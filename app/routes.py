@@ -173,6 +173,10 @@ def consumer_credential() :
         signin = True
     return render_template('consumer_credential.html', Consumer_signin=signin)
 
+@app.route('/consumer/data')
+def consumer_data() :
+    return render_template('consumer_data.html')
+
 @app.route('/consumer/process-signin', methods=['POST'])
 def consumer_process_signin() :
     values = request.get_json(force=True)
