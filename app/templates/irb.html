@@ -48,7 +48,7 @@
                     },
                     {
                         view: "scrollview",
-                        scroll: "y",
+                        scroll: "auto",
                         body: {
                             rows: [
                                 {
@@ -160,6 +160,7 @@
                                                                                     data: credential_definition_body,
                                                                                     contentType: "application/json",
                                                                                     success: (res) => {
+                                                                                        console.log(res);
                                                                                         var credential_definition_id = res["credential_definition_id"];
                                                                                         sessionStorage.setItem("credential_definition_id", credential_definition_id);
 
