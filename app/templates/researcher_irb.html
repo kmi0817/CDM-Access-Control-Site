@@ -8,6 +8,7 @@
     <link rel="shortcut icon" href="data:image/x-icon" type="image/x-icon"> <!-- favicon 없을 때 에러 방지 코드 -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
     <!-- <link rel="stylesheet" href="../static/upload.css" type="text/css"> -->
 
     <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css">
@@ -103,7 +104,7 @@
                                                     {
                                                         view: "radio", id: "radio",
                                                         label: "Credential-definition Ids", labelPosition: "top",
-                                                        options: [sessionStorage.getItem("irb_creddef_id")], vertical: true,
+                                                        options: ["hi", "Hi"], vertical: true,
                                                         click: () => {
                                                             var id = $$("radio").getValue();
                                                             var cred_def = sessionStorage.getItem(id);
@@ -162,20 +163,18 @@
                                                                     res = res.json();
                                                                     sessionStorage.setItem("irb_did", res.my_did);
 
-                                                                    webix.ajax().post("/researcher-irb/accpet-invitation", invitation)
-                                                                        .then((res) => {
+                                                                    webix.ajax().post("/researcher-irb/accept-invitation", invitation)
                                                                             location.reload();
                                                                         })
                                                                         .fail((xhr) => {
-                                                                            var res = JSON.parse(xhr.response);
-                                                                            var msg = "문제 발생: " + res.error.message + "\n초대장 세션을 등록하지 못하였습니다.";
+                                                                            var msg = "문제 발생: 초대장 세션을 등록하지 못하였습니다.";
 
                                                                             alert(msg);
                                                                         })
                                                                 })
                                                                 .fail((xhr) => {
                                                                     var res = JSON.parse(xhr.response);
-                                                                    var msg = "문제 발생: " + res.error.message + "\nResearcher 서버 상태를 확인해주세요.";
+                                                                    var msg = "문제 발생: Researcher 서버 상태를 확인해주세요.";
 
                                                                     alert(msg);
                                                                 });

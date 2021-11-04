@@ -150,7 +150,7 @@
                                                                     res = res.json();
                                                                     sessionStorage.setItem("consumer_did", res.my_did);
 
-                                                                    webix.ajax().post("/researcher-consumer/accpet-invitation", invitation)
+                                                                    webix.ajax().post("/researcher-consumer/accept-invitation", invitation)
                                                                         .then((res) => {
                                                                             location.reload();
                                                                         })

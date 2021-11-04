@@ -57,7 +57,7 @@ def researcher_irb() :
         inv = True
     return render_template('researcher_irb.html', IRB_inv=inv)
 
-@app.route('/researcher-irb/accpet-invitation', methods=['POST'])
+@app.route('/researcher-irb/accept-invitation', methods=['POST'])
 def researcher_irb_accept_invitation() :
     values = request.get_json(force=True)
     session['IRB_inv'] = values
@@ -70,7 +70,7 @@ def researcher_provider() :
         inv = True
     return render_template('researcher_provider.html', Provider_inv=inv)
 
-@app.route('/researcher-provider/accpet-invitation', methods=['POST'])
+@app.route('/researcher-provider/accept-invitation', methods=['POST'])
 def researcher_provider_accept_invitation() :
     values = request.get_json(force=True)
     session['Provider_inv'] = values
@@ -90,7 +90,7 @@ def researcher_consumer() :
 
     return render_template('researcher_consumer.html', Consumer_inv=inv, credential=credential)
 
-@app.route('/researcher-consumer/accpet-invitation', methods=['POST'])
+@app.route('/researcher-consumer/accept-invitation', methods=['POST'])
 def researcher_consumer_accept_invitation() :
     values = request.get_json(force=True)
     session['Consumer_inv'] = values
