@@ -16,6 +16,7 @@ pip3 install requests
 ```
 export FLASK_APP=app
 export FLASK_ENV=development
+flask run
 ```
 
 4. 사용자에 따라 변경 가능해야 하는 내용
