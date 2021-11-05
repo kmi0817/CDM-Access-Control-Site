@@ -103,12 +103,12 @@
                                                     {
                                                         view: "radio", id: "radio", vertical: true,
                                                         label: "Cred_ex_ids", labelPosition: "top",
-                                                        // options: sessionStorage.getItem("cred_ex_ids")
-                                                        options: ["9fc22e9c-e8e8-4c8b-8348-7944c75641e1","fc3c8edf-45ce-4980-b0f0-76caab149c60","6126b3c9-95d8-42cd-b3e2-9abce57ba807","de74c7dd-7956-40ac-b57d-aae87953dcfc","0bf89bd4-ff17-47a2-83f6-bcd1a67b7a8b","afaa55dd-2538-43d0-b474-93065e8705a9","6c1f9de4-2da7-42fd-a475-06c66424ae89","e048dbd7-3188-4fff-b173-3c37a36c1f71","41c33473-7503-45d9-95a4-f75c365c69b7","7df0f149-b1ae-4709-8805-d1b66b546cb1","ddb20e3c-6601-422d-9887-8c505c88e286","60f55095-2cee-4fd9-8d49-19a20b0e65ac"],
+                                                        options: ["You cannot select this (이거 없으면 오류남)"],
                                                         click: () => {
-                                                            var selected = $$("radio").getValue();
+                                                            var selected = $$("radio").getValue(); // ex) 1
+                                                            var option = $$("radio").getOption(selected); // ex) {"id": 1, "value": "sample"}
 
-                                                            webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${selected}`)
+                                                            webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${option.value}`)
                                                                 .then((res) => {
                                                                     var result = res.json();
                                                                     result = result["cred_ex_record"]["cred_offer"]["credential_preview"];
@@ -184,15 +184,7 @@
                                                                             records.forEach((item) => {
                                                                                 cred_ex_ids_arr.push(item["cred_ex_record"]["cred_ex_id"]);
                                                                             });
-
-                                                                            var cred_ex_ids = "[";
-                                                                            cred_ex_ids_arr.forEach((item) => {
-                                                                                cred_ex_ids += `"${item}",`;
-                                                                            });
-                                                                            
-                                                                            cred_ex_ids = cred_ex_ids.slice(0, -1);
-                                                                            cred_ex_ids += "]"
-                                                                            sessionStorage.setItem("cred_ex_ids", cred_ex_ids);
+                                                                            sessionStorage.setItem("cred_ex_ids", cred_ex_ids_arr);
 
                                                                             webix.ajax().post("/researcher-provider/accept-invitation", invitation)
                                                                                 .then((res) => {
@@ -225,6 +217,16 @@
                     },
                 ]
             });
+
+            {% if Provider_inv %}
+            var cred_ex_ids = sessionStorage.getItem("cred_ex_ids");
+            var ids = cred_ex_ids.split(",");
+
+            // $$("radio").removeOption()
+            ids.forEach((id, index) => {
+                $$("radio").addOption(index, id, true);
+            })
+            {% endif %}
         });
     </script>
 </body>

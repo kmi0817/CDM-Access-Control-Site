@@ -138,15 +138,15 @@
                                                             }
 
                                                             var conn_id = sessionStorage.getItem("irb_connection_id");
-                                                            // var cred_def_id = sessionStorage.getItem("credential_definition_id");
+                                                            var cred_def_id = sessionStorage.getItem("credential_definition_id");
                                                             // 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema
 
                                                             offer_request = {
                                                                 "connection_id": conn_id,
-                                                                "comment": `Offer on cred def id 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema`,
+                                                                "comment": `Offer on cred def id ${cred_def_id}`,
                                                                 "auto_remove": false,
                                                                 "credential_preview": cred_preview,
-                                                                "filter": {"indy": {"cred_def_id": "3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema"}},
+                                                                "filter": {"indy": {"cred_def_id": cred_def_id}},
                                                                 "trace": false,
                                                             }
 
