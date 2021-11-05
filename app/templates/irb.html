@@ -212,14 +212,11 @@
                                                         values = JSON.stringify(values);
 
                                                         webix.ajax().post("/irb/process-signin", values)
-                                                            .then(() => {
+                                                            .then((res) => {
                                                                 location.reload();
                                                             })
                                                             .fail((xhr) => {
-                                                                var res = JSON.parse(xhr.response);
-                                                                var msg = "문제 발생: " + res.error.message;
-
-                                                                alert(msg);
+                                                                alert("로그인 시 문제가 발생했습니다.");
                                                             });
                                                     }
                                                 }
