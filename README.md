@@ -21,5 +21,5 @@ pip3 install requests
 - 암호화에 필요한 함수를 외부 모듈로 생성하고자 함 (security.py 내에)
 - 하지만 외부 모듈로 불리한 후 routes.py 에서 import 하니 오류 발생
 - 원인 파악X -> 일단 routes.py 파일 내에 함수를 입력함
-- (2) provider한테 credential 제시하는 페이지에서 radio로 cred_ex_id 출력하기 (리스트로 radio option 넣어야 하는데 안 됨)
+- (2) provider한테 credential 제시하는 페이지에서 첫 번째 radio option 없으면 addOption 사용할 때 오류남
 - (3) researcher가 provider한테 credential 제시할 때 어떤 swagger API 사용하는지? 아님 그냥 로컬 세션 스토리지 사용하는지? 일단 아무것도 안 하고 버튼만 누르면,,, 그렇게 됨.
