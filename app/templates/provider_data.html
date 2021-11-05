@@ -96,7 +96,7 @@
                                                 elements: [
                                                     {
                                                         cols: [
-                                                            { view: "search", id: "search", placeholder: "data name", width: 520, hotkey: "enter" },
+                                                            { view: "search", id: "search", placeholder: "data name", width: 370, hotkey: "enter" },
                                                             {
                                                                 view: "button", value: "Select this data",
                                                                 autowidth: true, css: "webix_primary webix_button",
@@ -108,10 +108,23 @@
                                                                     values = JSON.stringify(values); // JSON으로 만들기
 
                                                                     // SFTP 서버로부터 파일 선택하여 로컬에 저장하고, 선택한 파일을 credential로 만들기
-                                                                    webix.ajax().sync().post("/provider/send-credential", values);
-                                                                    alert("Provider가 당신이 선택한 데이터를 Consumer에게 전송하였습니다.\n이제 Consumer 페이지로 이동하세요.");
+                                                                    webix.ajax().post("/provider/send-data-consumer", values) // researcher한테 cred 발급, consumer한테 데이터 전송
+                                                                        .then((res) => {
+                                                                            alert("Provider가 당신이 선택한 데이터를 Consumer에게 전송하였습니다.\nIssue Credential 버튼을 클릭해주세요.");
+                                                                            $$("issue_cred").show(true, false);
+                                                                        })
+                                                                        .fail((xhr) => {
+                                                                            alert("Provdier가 consumer에게 데이터를 전송하는 데 실패했습니다.");
+                                                                        })
                                                                 }
                                                             },
+                                                            {
+                                                                view: "button", id: "issue_cred", value: "Issue Credential",
+                                                                autowidth: true, hidden: true,
+                                                                click: () => {
+                                                                    alert("발급");
+                                                                }
+                                                            }
                                                         ]
                                                     },
                                                     {
@@ -122,11 +135,8 @@
                                                             autoheight: true,
                                                         },
                                                         data: `[
-                                                                {"id":1,"title":"test.txt"},
-                                                                {"id":2,"title":"The Godfather"},
-                                                                {"id":3,"title":"The Godfather: Part II"},
-                                                                {"id":4,"title":"The Good, the Bad and the Ugly"},
-                                                                {"id":5,"title":"My Fair Lady"}
+                                                                {"id":1,"title":"Publictest.txt"},
+                                                                {"id":2,"title":"color.json"}
                                                             ]`
                                                     }
                                                 ]
