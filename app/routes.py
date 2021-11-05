@@ -133,12 +133,12 @@ def provider_receive_credential() :
     session['Researcher_cred_to_provider'] = credential
     return credential
 
-@app.route('/provider/send-credential', methods=['POST'])
+@app.route('/provider/send-data-consumer', methods=['POST'])
 def provider_send_credential() :
     file = request.get_json(force=True) # 웹 페이지로부터 선택한 파일 가져오기
     title = file['file'] # 파일의 제목만 추출
 
-    sftp_path = f'/repo_test/{title}' # SFTP 경로
+    sftp_path = f'/repo_test/provider/{title}' # SFTP 경로
     current_path = os.getcwd() # 현재 working directory 경로 가져오기
     file_path = os.path.join(current_path, 'app', 'file', title) # 경로 병합해 새 경로 생성
 
@@ -147,13 +147,14 @@ def provider_send_credential() :
     # 암호화
         # 1) 파일 내용 읽기
     body = file_read(file_path)
-        # 2) credential 생성 (= 데이터, 키 2개씩 생성)
-    key1, key2, iv, body1, body2 = create_2key_and_2data(body)
+        # 2) 데이터, 키 2개씩 생성
+    key1, key2, iv, hash1, hash2 = create_2key_and_2data(body)
         # 3) file 폴더에 credential을 저장
     ret = save_credential_in_file(current_path, key1, key2, iv)
+        # 4) body1, body2 (=data) consumer SFTP로 전송
+    send_data_consumerSFTP(hash1, hash2)
 
     return 'Data sent from Provider to Consumer'
-
 
 
 
@@ -287,11 +288,8 @@ def twoChannelLoad(hash1, hash2):
 # routes.py > provider_send_credential에서 사용하는 함수
 def file_read(file_path) :
     body = '' # empty data content
-    f = open(file_path, "r")
-    while True :
-        line = f.readline()
-        if line == '' : break # 빈 줄이라면 반복문 멈추기
-        body += line
+    with open(file_path, "r") as f :
+        body = f.read()
     body = body.encode('utf-8')
     f.close()
     return body
@@ -302,8 +300,8 @@ def create_2key_and_2data(body) :
     key2 = b64decode("fbYeFx+06LRa47rZZH3Db6xO0rezOIitQ27r07ZEpbw=".encode('utf-8'))
     body1, body2 = twoChannelEncrytion(key1, key2, iv, body)
 
-    twoChannelStore(b64encode(body1).decode('utf-8'), b64encode(body2).decode('utf-8'))
-    return key1, key2, iv, body1, body2
+    hash1, hash2 = twoChannelStore(b64encode(body1).decode('utf-8'), b64encode(body2).decode('utf-8'))
+    return key1, key2, iv, hash1, hash2
 
 def save_credential_in_file(current_path, key1, key2, iv) :
     credential_path = os.path.join(current_path, 'app', "file", "credential.json") # 경로 병합해 새 경로 생성
@@ -317,3 +315,16 @@ def save_credential_in_file(current_path, key1, key2, iv) :
         f.write(content) # 파일에 쓰기
     f.close()
     return True
+
+def send_data_consumerSFTP(hash1, hash2) :
+    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
+    print(consumerSFTP, file=sys.stdout)
+
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = []
+    file_path.append(os.path.join(current_path, 'app', 'file', hash1))
+    file_path.append(os.path.join(current_path, 'app', 'file', hash2))
+    print(file_path, file=sys.stdout)
+
+    sftp.put(file_path[0], consumerSFTP[0])
+    sftp.put(file_path[1], consumerSFTP[1])
