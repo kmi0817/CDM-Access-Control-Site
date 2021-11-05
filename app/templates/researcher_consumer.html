@@ -104,7 +104,7 @@
                                                         view: "textarea", id: "credential", readonly: true,
                                                         label: "Credential", labelPosition: "top",
                                                         minHeight: 250, placeholder: "credential here",
-                                                        value: `{{credential}}`
+                                                        value: sessionStorage.getItem("data_credential")
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -113,11 +113,10 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            credential = JSON.parse(credential);
-                                                            credential = JSON.stringify(credential);
-                                                            sessionStorage.setItem("Researcher_cred_to_consumer", credential);
+                                                            console.log(credential);
+                                                            // credential = JSON.parse(credential);
+                                                            // credential = JSON.stringify(credential);
                                                             alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
-                                                            // credential 제시 == 로컬 스토리지 세션에 credential 등록
                                                         }
                                                     }
                                                 ]

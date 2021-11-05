@@ -85,14 +85,8 @@ def researcher_consumer() :
     inv = False
     if 'Consumer_inv' in session :
         inv = True
-    
-    # credential 읽어오기
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = os.path.join(current_path, 'app', "file", "credential.json") # 경로 병합해 새 경로 생성
-    f = open(file_path, 'r')
-    credential = f.read()
 
-    return render_template('researcher_consumer.html', Consumer_inv=inv, credential=credential)
+    return render_template('researcher_consumer.html', Consumer_inv=inv)
 
 @app.route('/researcher-consumer/accept-invitation', methods=['POST'])
 def researcher_consumer_accept_invitation() :
@@ -100,6 +94,41 @@ def researcher_consumer_accept_invitation() :
     session['Consumer_inv'] = values
     return 'Researcher accepts Consumer invitation'
 
+@app.route('/researcher-consumer/present-credential', methods=['POST'])
+def researcher_consumer_present_credential() :
+    credential = request.get_json(force=True)
+    session['data_cred'] = credential
+
+    '''
+    hash1 = "sCDC0109267107"
+    hash2 = "secM0803220193"
+    consumerSFTP_get(hash1, hash2)
+    # consumerSFTP로부터 로컬로 파일 다운 받는 부분인데ㅡ
+    # 일단 file 폴더에 sCDC~, secM08~ 파일 있으니까 생략
+    '''
+
+    hash1 = "sCDC0109267107"
+    hash2 = "secM0803220193"
+    body1, body2 = twoChannelLoad(hash1, hash2)
+
+    key1 = credential['key1']
+    key2 = credential['key2']
+    seed = credential['seed']
+
+    twoChannelDecrytion(key1, key2, iv, body1, body2):
+
+    return credential
+
+def consumerSFTP_get(hash1, hash2) :
+    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
+
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = []
+    file_path.append(os.path.join(current_path, 'app', 'file', hash1))
+    file_path.append(os.path.join(current_path, 'app', 'file', hash2))
+
+    sftp.get(consumerSFTP[0], file_path[0])
+    sftp.get(consumerSFTP[1], file_path[1])
 
 
 
@@ -138,11 +167,7 @@ def provider_send_credential() :
     file = request.get_json(force=True) # 웹 페이지로부터 선택한 파일 가져오기
     title = file['file'] # 파일의 제목만 추출
 
-    sftp_path = f'/repo_test/provider/{title}' # SFTP 경로
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = os.path.join(current_path, 'app', 'file', title) # 경로 병합해 새 경로 생성
-
-    sftp.get(sftp_path, file_path) # 파일 다운로드
+    file_path, current_path = providerSFTP_get(title) # SFTP로부터 파일 가져오기
 
     # 암호화
         # 1) 파일 내용 읽기
@@ -152,7 +177,7 @@ def provider_send_credential() :
         # 3) file 폴더에 credential을 저장
     ret = save_credential_in_file(current_path, key1, key2, iv)
         # 4) body1, body2 (=data) consumer SFTP로 전송
-    send_data_consumerSFTP(hash1, hash2)
+    providerSFTP_send_data_consumerSFTP(hash1, hash2)
 
     return 'Data sent from Provider to Consumer'
 
@@ -325,7 +350,17 @@ def save_credential_in_file(current_path, key1, key2, iv) :
     f.close()
     return True
 
-def send_data_consumerSFTP(hash1, hash2) :
+
+
+def providerSFTP_get(title) :
+    sftp_path = f'/repo_test/provider/{title}' # SFTP 경로
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = os.path.join(current_path, 'app', 'file', title) # 경로 병합해 새 경로 생성
+
+    sftp.get(sftp_path, file_path) # 파일 다운로드
+    return file_path, current_path
+
+def providerSFTP_send_data_consumerSFTP(hash1, hash2) :
     consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
     print(consumerSFTP, file=sys.stdout)
 
