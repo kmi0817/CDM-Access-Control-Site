@@ -156,6 +156,15 @@ def provider_send_credential() :
 
     return 'Data sent from Provider to Consumer'
 
+@app.route('/provider/issue-credential', methods=['POST'])
+def provider_issue_credential() :
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    cred_path = os.path.join(current_path, 'app', 'file', 'credential.json') # 경로 병합해 새 경로 생성
+
+    with open(cred_path, 'r') as f :
+        credential = f.read()
+    return credential
+
 
 
 @app.route('/consumer')

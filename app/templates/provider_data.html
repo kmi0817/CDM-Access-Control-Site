@@ -122,7 +122,11 @@
                                                                 view: "button", id: "issue_cred", value: "Issue Credential",
                                                                 autowidth: true, hidden: true,
                                                                 click: () => {
-                                                                    alert("발급");
+                                                                    webix.ajax().post("/provider/issue-credential")
+                                                                        .then((res) => {
+                                                                            sessionStorage.setItem("data_credential", JSON.stringify(res.json()));
+                                                                            alert("Credential 발급 완료\nConsumer 페이지로 이동하세요.");
+                                                                        })
                                                                 }
                                                             }
                                                         ]
