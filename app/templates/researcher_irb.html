@@ -163,7 +163,7 @@
                                                                 data: JSON.stringify(offer_request),
                                                                 contentType: "application/json",
                                                                 success: (res) => {
-                                                                    sessionStorage.setItem("credential", JSON.stringify(res));
+                                                                    sessionStorage.setItem("irb_credential", JSON.stringify(res));
                                                                     alert("IRB로부터 credential 발급 완료\n이제 Provider로 이동하여 초대장을 발급받으세요.");
                                                                 },
                                                                 error: () => {
