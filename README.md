@@ -31,3 +31,5 @@ flask run
 - (2) provider한테 credential 제시하는 페이지에서 첫 번째 radio option 없으면 addOption 사용할 때 오류남
 - (3) researcher가 provider한테 credential 제시할 때 어떤 swagger API 사용하는지? 아님 그냥 로컬 세션 스토리지 사용하는지? 일단 아무것도 안 하고 버튼만 누르면,,, 그렇게 됨.
 - (4) provider/data에서 SFTP에 있는 파일들 제목을 직접 SFTP로부터 읽어올 수가X -> 일단 직접 적음
+
+6. FTP 다른 모듈: https://nurilab.github.io/2020/04/13/python_ftp/ 이거 괜찮음. 리스트업도 되는 듯? / https://blog.naver.com/PostView.nhn?blogId=dsz08082&logNo=221868934940&parentCategoryNo=&categoryNo=134&viewDate=&isShowPopularPosts=false&from=postView

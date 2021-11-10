@@ -7,6 +7,8 @@ import requests
 from base64 import b64decode, b64encode
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+from io import StringIO
+from flask import Response
 
 
 # 로그인 정보
@@ -197,7 +199,6 @@ def consumer_data() :
 
         body = twoChannelDecrytion(key1, key2, iv, body1, body2)
         body = body.decode('utf-8') # byte array -> string
-        print(body)
         return render_template('consumer_data.html', file=body)
     else :
         return render_template('consumer_data.html')
@@ -225,6 +226,20 @@ def consumer_receive_credential() :
     session['Researcher_cred_to_consumer'] = credential
     return credential
 
+@app.route('/consumer/data-download', methods=['POST'])
+def consumer_data_download() :
+    # 파일 생성
+    values = request.get_json(force=True)
+    title = values['title']
+    body = values['body']
+
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = os.path.join(current_path, 'app', 'consumer_file', title)
+
+    with open(file_path, 'w') as f :
+        f.write(body)
+
+    return 'done'
 
 
 

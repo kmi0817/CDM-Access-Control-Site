@@ -116,7 +116,17 @@
                                                     },
                                                     {
                                                         view: "button", value: "download", click: () => {
-                                                            alert("down");
+                                                            var values = {
+                                                                "title": sessionStorage.getItem("file"),
+                                                                "body": `{{file}}`
+                                                            }
+                                                            webix.ajax().post("/consumer/data-download", JSON.stringify(values))
+                                                                .then((res) => {
+                                                                    alert("다운로드된 파일은 /app/consumer_file에 저장되었습니다.");
+                                                                })
+                                                                .fail(() => {
+                                                                    alert("파일 다운받는 데 실패했습니다.");
+                                                                });
                                                         }
                                                     }
                                                 ]
