@@ -102,18 +102,26 @@
                                                         view: "spacer", height: 20
                                                     },
                                                     {
-                                                        view: "text", readonly: true,
-                                                        label: "Credential-definition Id", labelPosition: "top",
-                                                        value: sessionStorage.getItem("credential_definition_id") + " || 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema"
+                                                        view: "radio", id: "credential_definition_ids",
+                                                        name: "credential_definition_ids", vertical: true,
+                                                        label: "Credential-definition ids", labelPosition: "top",
+                                                        options: sessionStorage.getItem("credential_definition_ids").split(","),
+                                                        click: () => {
+                                                            var id = $$("credential_definition_ids").getValue();
+                                                            webix.ajax().get(`http://0.0.0.0:8031/credential-definitions/${id}`)
+                                                                .then((res) => {
+                                                                    $$("credential_definition").setValue(JSON.stringify(res.json(), null, 4));
+                                                                })
+                                                        }
                                                     },
                                                     {
                                                         view: "spacer", height: 20
                                                     },
                                                     {
-                                                        view: "textarea", id: "credential", readonly: true,
-                                                        label: "Credential", labelPosition: "top",
+                                                        view: "textarea", id: "credential_definition", readonly: true,
+                                                        label: "Credential-definition", labelPosition: "top",
                                                         height: 400, scroll: "y",
-                                                        placeholder: "Credential here"
+                                                        placeholder: "Credential-definition here"
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -138,8 +146,7 @@
                                                             }
 
                                                             var conn_id = sessionStorage.getItem("irb_connection_id");
-                                                            var cred_def_id = sessionStorage.getItem("credential_definition_id");
-                                                            // 3YBjSKk92rRFSeAASKRy2p:3:CL:8:irb.agent.IRB_schema
+                                                            var cred_def_id = $$("credential_definition_ids").getValue();
 
                                                             offer_request = {
                                                                 "connection_id": conn_id,
@@ -150,14 +157,12 @@
                                                                 "trace": false,
                                                             }
 
-                                                            offer_request = JSON.stringify(offer_request);
                                                             $.ajax({
                                                                 type: "post",
                                                                 url: "http://0.0.0.0:8011/issue-credential-2.0/send-offer",
-                                                                data: offer_request,
+                                                                data: JSON.stringify(offer_request),
                                                                 contentType: "application/json",
                                                                 success: (res) => {
-                                                                    $$("credential").setValue(JSON.stringify(res));
                                                                     sessionStorage.setItem("credential", JSON.stringify(res));
                                                                     alert("IRB로부터 credential 발급 완료\n이제 Provider로 이동하여 초대장을 발급받으세요.");
                                                                 },

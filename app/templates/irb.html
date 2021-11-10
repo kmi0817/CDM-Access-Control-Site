@@ -135,16 +135,14 @@
                                                                             "attributes": ["name", "affiliation", "role",
                                                                                 "GCP", "IRB_no", "approved_date", "timestamp"],
                                                                         }
-                                                                        schema_body = JSON.stringify(schema_body);
 
                                                                         $.ajax({
                                                                             type: "post",
                                                                             url: "http://0.0.0.0:8011/schemas",
-                                                                            data: schema_body,
+                                                                            data: JSON.stringify(schema_body),
                                                                             contentType: "application/json",
                                                                             success: (res) => {
                                                                                 var schema_id = res["schema_id"];
-                                                                                sessionStorage.setItem("schema_id", schema_id);
 
                                                                                 // credeential-definition 생성 및 등록
                                                                                 credential_definition_body = {
@@ -160,14 +158,18 @@
                                                                                     data: credential_definition_body,
                                                                                     contentType: "application/json",
                                                                                     success: (res) => {
-                                                                                        console.log(res);
-                                                                                        var credential_definition_id = res["credential_definition_id"];
-                                                                                        sessionStorage.setItem("credential_definition_id", credential_definition_id);
 
-                                                                                        alert("초대장을 발급했습니다.\n이제 Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
+                                                                                        webix.ajax().get("http://0.0.0.0:8011/credential-definitions/created")
+                                                                                            .then((res) => {
+                                                                                                sessionStorage.setItem("credential_definition_ids", res.json()["credential_definition_ids"]);
+                                                                                                alert("초대장을 발급했습니다.\n이제 Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
+                                                                                            })
+                                                                                            .fail(() => {
+                                                                                                console.log("credential-definition ids 가져오기 실패");
+                                                                                            });
                                                                                     },
                                                                                     error: (err) => {
-                                                                                        alert("credential-defitnion: Error occured");
+                                                                                        alert("credential-defitnion [POST]: Error occured");
                                                                                     }
                                                                                 })
                                                                             },

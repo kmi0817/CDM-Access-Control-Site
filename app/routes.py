@@ -115,7 +115,7 @@ def researcher_consumer_present_credential() :
     key2 = credential['key2']
     seed = credential['seed']
 
-    twoChannelDecrytion(key1, key2, iv, body1, body2):
+    twoChannelDecrytion(key1, key2, iv, body1, body2)
 
     return credential
 
