@@ -33,3 +33,5 @@ flask run
 - (4) provider/data에서 SFTP에 있는 파일들 제목을 직접 SFTP로부터 읽어올 수가X -> 일단 직접 적음
 
 6. FTP 다른 모듈: https://nurilab.github.io/2020/04/13/python_ftp/ 이거 괜찮음. 리스트업도 되는 듯? / https://blog.naver.com/PostView.nhn?blogId=dsz08082&logNo=221868934940&parentCategoryNo=&categoryNo=134&viewDate=&isShowPopularPosts=false&from=postView
+
+7. ** provider에서 credential accept하는 페이지 사용 안 했음 ㅋㅋ 수정해야지.
