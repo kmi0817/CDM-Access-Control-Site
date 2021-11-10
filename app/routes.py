@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, redirect, url_for, session, request, json
+from flask import render_template, redirect, url_for, session, request, json, jsonify
 import paramiko
 import os.path
 import sys
@@ -99,37 +99,7 @@ def researcher_consumer_present_credential() :
     credential = request.get_json(force=True)
     session['data_cred'] = credential
 
-    '''
-    hash1 = "sCDC0109267107"
-    hash2 = "secM0803220193"
-    consumerSFTP_get(hash1, hash2)
-    # consumerSFTP로부터 로컬로 파일 다운 받는 부분인데ㅡ
-    # 일단 file 폴더에 sCDC~, secM08~ 파일 있으니까 생략
-    '''
-
-    hash1 = "sCDC0109267107"
-    hash2 = "secM0803220193"
-    body1, body2 = twoChannelLoad(hash1, hash2)
-
-    key1 = credential['key1']
-    key2 = credential['key2']
-    seed = credential['seed']
-
-    twoChannelDecrytion(key1, key2, iv, body1, body2)
-
     return credential
-
-def consumerSFTP_get(hash1, hash2) :
-    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
-
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = []
-    file_path.append(os.path.join(current_path, 'app', 'file', hash1))
-    file_path.append(os.path.join(current_path, 'app', 'file', hash2))
-
-    sftp.get(consumerSFTP[0], file_path[0])
-    sftp.get(consumerSFTP[1], file_path[1])
-
 
 
 
@@ -210,7 +180,27 @@ def consumer_credential() :
 
 @app.route('/consumer/data')
 def consumer_data() :
-    return render_template('consumer_data.html')
+    if 'Researcher_cred_to_consumer' in session :
+        hash1 = "sCDC0109267107"
+        hash2 = "secM0803220193"
+        consumerSFPT_get_body(hash1, hash2) # SFTP에서 로컬로 파일 다운로드
+
+        body1, body2 = twoChannelLoad(hash1, hash2, 'consumer_file') # 파일 암호화된 body 가져오기
+
+        body1 = b64decode(body1.encode('utf-8'))
+        body2 = b64decode(body2.encode('utf-8'))
+
+        data_credential = session['Researcher_cred_to_consumer']
+        key1 = b64decode(data_credential['key1'].encode('utf-8'))
+        key2 = b64decode(data_credential['key2'].encode('utf-8'))
+        iv = b64decode(data_credential['seed'].encode('utf-8'))
+
+        body = twoChannelDecrytion(key1, key2, iv, body1, body2)
+        body = body.decode('utf-8') # byte array -> string
+        print(body)
+        return render_template('consumer_data.html', file=body)
+    else :
+        return render_template('consumer_data.html')
 
 @app.route('/consumer/process-signin', methods=['POST'])
 def consumer_process_signin() :
@@ -303,15 +293,15 @@ def twoChannelStore(body1, body2):
     file2.close()
     return hash1, hash2
     
-def twoChannelLoad(hash1, hash2):
+def twoChannelLoad(hash1, hash2, directory):
     current_path = os.getcwd() # 현재 working directory 경로 가져오기
 
-    hash1_path = os.path.join(current_path, 'app', "file", hash1) # 경로 병합해 새 경로 생성
+    hash1_path = os.path.join(current_path, 'app', directory, hash1) # 경로 병합해 새 경로 생성
     file1 = open(hash1_path, 'r')
     body1 = file1.read()
     file1.close()
 
-    hash2_path = os.path.join(current_path, 'app', "file", hash2) # 경로 병합해 새 경로 생성
+    hash2_path = os.path.join(current_path, 'app', directory, hash2) # 경로 병합해 새 경로 생성
     file2 = open(hash2_path, 'r')
     body2 = file2.read()
     file2.close()
@@ -372,3 +362,15 @@ def providerSFTP_send_data_consumerSFTP(hash1, hash2) :
 
     sftp.put(file_path[0], consumerSFTP[0])
     sftp.put(file_path[1], consumerSFTP[1])
+
+def consumerSFPT_get_body(hash1, hash2) :
+    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
+
+    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    file_path = []
+    file_path.append(os.path.join(current_path, 'app', 'consumer_file', hash1))
+    file_path.append(os.path.join(current_path, 'app', 'consumer_file', hash2))
+    print(file_path, file=sys.stdout)
+
+    sftp.get(consumerSFTP[0], file_path[0])
+    sftp.get(consumerSFTP[1], file_path[1])

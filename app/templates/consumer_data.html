@@ -107,9 +107,12 @@
                                                 view: "form", id: "filedownload_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "text", readonly: true,
-                                                        label: "File Name", placeholder: "File Name here",
-                                                        // value: ""
+                                                        view: "textarea", id: "file", readonly: true,
+                                                        label: "File Name", labelPosition: "top",
+                                                        placeholder: "File Name here", height: 250,
+                                                        {% if file %}
+                                                        value: `{{file}}`
+                                                        {% endif %}
                                                     },
                                                     {
                                                         view: "button", value: "download", click: () => {

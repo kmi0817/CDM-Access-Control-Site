@@ -113,9 +113,7 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            console.log(credential);
-                                                            // credential = JSON.parse(credential);
-                                                            // credential = JSON.stringify(credential);
+                                                            sessionStorage.setItem("data_credential_to_consumer", credential)
                                                             alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
                                                         }
                                                     }
@@ -153,18 +151,12 @@
                                                                         .then((res) => {
                                                                             location.reload();
                                                                         })
-                                                                        .fail((xhr) => {
-                                                                            var res = JSON.parse(xhr.response);
-                                                                            var msg = "문제 발생: " + res.error.message + "\n초대장 세션을 등록하지 못하였습니다.";
-
-                                                                            alert(msg);
+                                                                        .fail(() => {
+                                                                            alert("초대장 세션을 등록하지 못하였습니다.");
                                                                         })
                                                                 })
-                                                                .fail((xhr) => {
-                                                                    var res = JSON.parse(xhr.response);
-                                                                    var msg = "문제 발생: " + res.error.message + "\nResearcher 서버 상태를 확인해주세요.";
-
-                                                                    alert(msg);
+                                                                .fail(() => {
+                                                                    alert("Researcher 서버 상태를 확인해주세요.");
                                                                 });
                                                         }
                                                     }

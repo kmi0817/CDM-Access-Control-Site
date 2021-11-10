@@ -168,17 +168,13 @@
                                                     var form = $$("signin_form");
                                                     if (form.validate()) {
                                                         var values = form.getValues();
-                                                        values = JSON.stringify(values);
 
-                                                        webix.ajax().post("/consumer/process-signin", values)
+                                                        webix.ajax().post("/consumer/process-signin", JSON.stringify(values))
                                                             .then(() => {
                                                                 location.reload();
                                                             })
-                                                            .fail((xhr) => {
-                                                                var res = JSON.parse(xhr.response);
-                                                                var msg = "문제 발생: " + res.error.message;
-
-                                                                alert(msg);
+                                                            .fail(() => {
+                                                                alert("Consumer 로그인 시 문제 발생");
                                                             });
                                                     }
                                                 }
