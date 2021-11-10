@@ -103,20 +103,19 @@
                                                     {
                                                         view: "radio", id: "radio", vertical: true,
                                                         label: "Cred_ex_ids", labelPosition: "top",
-                                                        options: ["You cannot select this (이거 없으면 오류남)"],
+                                                        options: sessionStorage.getItem("cred_ex_ids").split(","),
                                                         click: () => {
-                                                            var selected = $$("radio").getValue(); // ex) 1
-                                                            var option = $$("radio").getOption(selected); // ex) {"id": 1, "value": "sample"}
+                                                            var cred_ex_id = $$("radio").getValue();
 
-                                                            webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${option.value}`)
+                                                            webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${cred_ex_id}`)
                                                                 .then((res) => {
                                                                     var result = res.json();
                                                                     result = result["cred_ex_record"]["cred_offer"]["credential_preview"];
                                                                     result = result["attributes"];
                                                                     
-                                                                    $$("credential").setValue(JSON.stringify(result));
+                                                                    $$("credential").setValue(JSON.stringify(result, null, 4));
                                                                 })
-                                                                .fail((xhr) => {
+                                                                .fail(() => {
                                                                     alert("해당 credential record를 가져올 수 없습니다.");
                                                                 })
                                                         }
@@ -140,7 +139,7 @@
 
                                                             webix.ajax().post("/provider/receive-credential", JSON.stringify(credential))
                                                                 .then((res) => {
-                                                                    alert("Consumer에게 Credential을 제시했습니다. (따로 로컬 스토리지 세션 처리X swagger API도 사용X)\nProvider 페이지의 Data Selection 메뉴로 이동하세요.");
+                                                                    alert("Provider에게 Credential을 제시했습니다.\nProvider 페이지의 Data Selection 메뉴로 이동하세요.");
                                                                 })
                                                                 .fail((xhr) => {
                                                                     alert("Provider에게 Credential을 제시하는 데 실패했습니다.");
@@ -217,16 +216,6 @@
                     },
                 ]
             });
-
-            {% if Provider_inv %}
-            var cred_ex_ids = sessionStorage.getItem("cred_ex_ids");
-            var ids = cred_ex_ids.split(",");
-
-            // $$("radio").removeOption()
-            ids.forEach((id, index) => {
-                $$("radio").addOption(index, id, true);
-            })
-            {% endif %}
         });
     </script>
 </body>
