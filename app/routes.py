@@ -2,6 +2,7 @@ from app import app
 from flask import render_template, redirect, url_for, session, request, json, jsonify
 import paramiko
 import random
+from time import time
 import os.path
 import sys
 import requests
@@ -108,21 +109,71 @@ def irb_create_schema() :
 
 
 @app.route('/researcher-irb')
-def researcher_irb() :
-    inv = False
-    if 'IRB_inv' in session :
-        inv = True
-    return render_template('researcher_irb.html', IRB_inv=inv)
+def researcherIrb() :
+    invitation = False
+    my_did = False
+    cred_def_ids = False
+    if 'IRB_createInvitation' in session :
+        invitation = session['IRB_createInvitation']['invitation']
+    if 'Researcher_IRBreceiveInvitation' in session :
+        my_did = session['Researcher_IRBreceiveInvitation']['my_did']
+        with requests.get('http://0.0.0.0:8011/credential-definitions/created') as created_res :
+            cred_def_ids = created_res.json()['credential_definition_ids']
+    return render_template('researcher_irb.html', invitation=invitation, my_did=my_did, cred_def_ids=cred_def_ids)
 
-@app.route('/researcher-irb/accept-invitation', methods=['POST'])
-def researcher_irb_accept_invitation() :
+@app.route('/researcher-irb/receive-invitation', methods=['POST'])
+def researcherIrb_receive_invitation() :
+    if 'IRB_createInvitation' in session :
+        invitation = session['IRB_createInvitation']['invitation']
+
+        with requests.post('http://0.0.0.0:8031/connections/receive-invitation', json=invitation) as receive_res :
+            my_did = receive_res.json()['my_did']
+        session['Researcher_IRBreceiveInvitation'] = {
+            "my_did" : my_did
+        }
+        return 'OK'
+
+    else :
+        return 'FAIL'
+
+@app.route('/researcher-irb/issue-credential', methods=['POST'])
+def researcherIrb_issue_credential() :
     values = request.get_json(force=True)
-    credential_definition_id = values['credential_definition_id']
-    session['IRB_inv'] = credential_definition_id
+    cred_def_id = values['credential_definition_id']
 
-    response = requests.get(f'http://0.0.0.0:8011/credential-definitions/created')
-    print(response.json(), file=sys.stdout)
-    return 'Researcher accepts IRB invitation'
+    cred_attrs=  {
+        "name": "Alice",
+        "affiliation": "CNUH",
+        "role": "PI",
+        "GCP": "1",
+        "IRB_no": "2021-0008",
+        "approved_date": "2021-03-28",
+        "timestamp": str(int(time()))
+    }
+    CRED_PREVIEW_TYPE = "https://didcomm.org/issue-credential/2.0/credential-preview"
+    cred_preview = {
+        "@type": CRED_PREVIEW_TYPE,
+        "attributes": [
+            {"name": n, "value": v}
+            for (n, v) in cred_attrs.items()
+        ]
+    }
+    exchange_tracing = False
+    conn_id = session['IRB_createInvitation']['conn_id']
+    offer_request = {
+        "connection_id": conn_id,
+        "comment": f"Offer on cred def id {cred_def_id}",
+        "auto_remove": False,
+        "credential_preview": cred_preview,
+        "filter": {"indy": {"cred_def_id": cred_def_id}},
+        "trace": exchange_tracing
+    }
+    with requests.post('http://localhost:8011/issue-credential-2.0/send-offer', json=offer_request) as offer_res :
+        cred_ex_id = offer_res.json()['cred_ex_id']
+    session['IRB_issueCredential'] = {
+        "cred_ex_id": cred_ex_id
+    }
+    return 'OK'
 
 @app.route('/researcher-provider')
 def researcher_provider() :

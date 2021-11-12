@@ -82,7 +82,7 @@
                                 {
                                     view: "spacer", height: 30
                                 },
-                                {% if IRB_inv %}
+                                {% if my_did %}
                                 {
                                     align: "center", body: {
                                         rows: [
@@ -95,7 +95,7 @@
                                                     {
                                                         view: "text", readonly: true,
                                                         label: "DID", labelPosition: "top",
-                                                        value: sessionStorage.getItem("irb_did"),
+                                                        value: `{{my_did}}`,
                                                         placeholder: "DID here"
                                                     },
                                                     {
@@ -105,7 +105,11 @@
                                                         view: "radio", id: "credential_definition_ids",
                                                         name: "credential_definition_ids", vertical: true,
                                                         label: "Credential-definition ids", labelPosition: "top",
-                                                        options: sessionStorage.getItem("credential_definition_ids").split(","),
+                                                        options: [
+                                                            {% for id in cred_def_ids %}
+                                                            `{{id}}`,
+                                                            {% endfor %}
+                                                        ],
                                                         click: () => {
                                                             var id = $$("credential_definition_ids").getValue();
                                                             webix.ajax().get(`http://0.0.0.0:8031/credential-definitions/${id}`)
@@ -129,47 +133,13 @@
                                                     {
                                                         view: "button", value: "Submit",
                                                         click: () => {
-                                                            const CRED_PREVIEW_TYPE = "https://didcomm.org/issue-credential/2.0/credential-preview"
-                                                            const timestamp = + new Date();
-
-                                                            const cred_preview = {
-                                                                "@type": CRED_PREVIEW_TYPE,
-                                                                "attributes": [
-                                                                    {"name": "name", "value": "Alice"},
-                                                                    {"name": "affiliation", "value": "CNUH"},
-                                                                    {"name": "role", "value": "PI"},
-                                                                    {"name": "GCP", "value": "1"},
-                                                                    {"name": "IRB_no", "value": "2021-0008"},
-                                                                    {"name": "approved_date", "value": "2021-03-28"},
-                                                                    {"name": "timestamp", "value": String(timestamp)}
-                                                                ],
+                                                            var id = $$("credential_definition_ids").getValue();
+                                                            var values = {
+                                                                "credential_definition_id" : id
                                                             }
-
-                                                            var conn_id = sessionStorage.getItem("irb_connection_id");
-                                                            var cred_def_id = $$("credential_definition_ids").getValue();
-
-                                                            offer_request = {
-                                                                "connection_id": conn_id,
-                                                                "comment": `Offer on cred def id ${cred_def_id}`,
-                                                                "auto_remove": false,
-                                                                "credential_preview": cred_preview,
-                                                                "filter": {"indy": {"cred_def_id": cred_def_id}},
-                                                                "trace": false,
-                                                            }
-
-                                                            $.ajax({
-                                                                type: "post",
-                                                                url: "http://0.0.0.0:8011/issue-credential-2.0/send-offer",
-                                                                data: JSON.stringify(offer_request),
-                                                                contentType: "application/json",
-                                                                success: (res) => {
-                                                                    sessionStorage.setItem("irb_credential", JSON.stringify(res));
-                                                                    alert("IRB로부터 credential 발급 완료\n이제 Provider로 이동하여 초대장을 발급받으세요.");
-                                                                },
-                                                                error: () => {
-                                                                    alert("IRB: issue-credential-2.0/send-offer 문제 발생");
-                                                                }
-                                                            });
+                                                            webix.ajax().post("/researcher-irb/issue-credential", JSON.stringify(values))
+                                                            .then((res) => { alert("IRB로부터 증명서를 발급받았습니다.\nProvider 페이지로 이동하여 초대장을 발급받으세요."); })
+                                                            .fail(() => { alert("IRB로부터 증명서 발급받는 과정 중 오류 발생"); });
                                                         }
                                                     }
                                                 ]
@@ -177,7 +147,7 @@
                                         ]
                                     }
                                 },
-                                {% else %}
+                                {% elif invitation %}
                                 {
                                     align: "center", body: {
                                         rows: [
@@ -188,33 +158,30 @@
                                                 view: "form", id: "invitaion_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", id: "invition", readonly: true,
+                                                        view: "textarea", id: "invition_textarea", readonly: true,
                                                         autoheight: true, minHeight: 250,
                                                         placeholder: "Invition from IRB here",
-                                                        value: sessionStorage.getItem("irb_invitation")
+                                                        {% if invitation %}
+                                                        value: `{{invitation}}`
+                                                        {% endif %}
                                                     },
                                                     {
                                                         view: "button", value: "Accept Invitation",
                                                         click: () => {
-                                                            var invitation = JSON.stringify(sessionStorage.getItem("irb_invitation"));
-                                                            webix.ajax().post("http://0.0.0.0:8031/connections/receive-invitation", invitation)
-                                                                .then((res) => {
-                                                                    res = res.json();
-                                                                    sessionStorage.setItem("irb_did", res.my_did);
+                                                            var invitation = $$("invition_textarea").getValue();
+                                                            invitation = invitation.replace(/'/gi, '"'); // 작은 따옴표를 큰 따옴표로 대체
+                                                            invitation = JSON.stringify(JSON.parse(invitation));
 
-                                                                    var values = JSON.stringify({"credential_definition_id" : sessionStorage.getItem("credential_definition_id")});
-                                                                    console.log(values);
-                                                                    webix.ajax().post("/researcher-irb/accept-invitation", values)
-                                                                        .then((res) => {
-                                                                            location.reload();
-                                                                        })
-                                                                        .fail((xhr) => {
-                                                                            alert("문제 발생: 초대장 세션을 등록하지 못하였습니다.");
-                                                                        })
-                                                                })
-                                                                .fail((xhr) => {
-                                                                    alert("문제 발생: Researcher 서버 상태를 확인해주세요.");
-                                                                });
+                                                            webix.ajax().post("/researcher-irb/receive-invitation")
+                                                            .then((res) => {
+                                                                var response = res.text();
+                                                                if (response === "OK") {
+                                                                    location.reload();
+                                                                } else {
+                                                                    alert("먼저 IRB의 초대장을 받으세요.");
+                                                                }
+                                                            })
+                                                            .fail(() => { alert("Researcher: 초대장 수락 과정 중 오류 발생"); });
                                                         }
                                                     }
                                                 ]
