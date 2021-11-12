@@ -65,33 +65,14 @@
                                                     {
                                                         view: "button", value: "Sign Out", width: 100,
                                                         click: () => {
-                                                            // IRB connection 끊기
-                                                            if (sessionStorage.getItem("irb_connection_id")) {
-                                                                var id = sessionStorage.getItem("irb_connection_id");
-                                                                webix.ajax().sync().del(`http://0.0.0.0:8011/connections/${id}`);
-                                                            }
-
-                                                            // provider connection 끊기
-                                                            if (sessionStorage.getItem("provider_connection_id")) {
-                                                                var id = sessionStorage.getItem("provider_connection_id");
-                                                                webix.ajax().sync().del(`http://0.0.0.0:8051/connections/${id}`);
-                                                            }
-
-                                                            // consumer connection 끊기
-                                                            if (sessionStorage.getItem("consumer_connection_id")) {
-                                                                var id = sessionStorage.getItem("consumer_connection_id");
-                                                                webix.ajax().sync().del(`http://0.0.0.0:8061/connections/${id}`);
-                                                            }
-
                                                             webix.ajax().sync().post("/irb/process-signout")
-                                                            sessionStorage.clear(); // 로컬 세션 스토리지 모두 삭제
                                                             location.reload();
                                                         }
                                                     }
                                                     {% else %}
                                                     {
                                                         view: "button", value: "Sign In", width: 100,
-                                                        click: () => { location.href = ""; }
+                                                        click: () => { location.href = "/"; }
                                                     }
                                                     {% endif %}
                                                 ]
@@ -118,69 +99,15 @@
                                                         {
                                                             view: "button", value: "Create Invitation", width: 200,
                                                             click: () => {
-                                                                // 초대장 받기
-                                                                webix.ajax().post("http://0.0.0.0:8011/connections/create-invitation")
+                                                                webix.ajax().post("/irb/create-invitation")
+                                                                .then((res) => {
+                                                                    webix.ajax().post("/irb/create-creddef")
                                                                     .then((res) => {
-                                                                        var invitation = res.json().invitation; // 초대장 받기
-                                                                        invitation = JSON.stringify(invitation);
-                                                                        sessionStorage.setItem("irb_invitation", invitation); // 초대장 세션 등록
-
-                                                                        var connection_id = res.json().connection_id; // connection id 받기
-                                                                        sessionStorage.setItem("irb_connection_id", connection_id); // connection id 세션 등록
-
-                                                                        // schema 생성 및 등록
-                                                                        schema_body = {
-                                                                            "schema_name": "IRB schema",
-                                                                            "schema_version": "2021.11.11",
-                                                                            "attributes": ["name", "affiliation", "role",
-                                                                                "GCP", "IRB_no", "approved_date", "timestamp"],
-                                                                        }
-
-                                                                        $.ajax({
-                                                                            type: "post",
-                                                                            url: "http://0.0.0.0:8011/schemas",
-                                                                            data: JSON.stringify(schema_body),
-                                                                            contentType: "application/json",
-                                                                            success: (res) => {
-                                                                                var schema_id = res["schema_id"];
-
-                                                                                // credeential-definition 생성 및 등록
-                                                                                credential_definition_body = {
-                                                                                    "schema_id": schema_id,
-                                                                                    "support_revocation": false,
-                                                                                    "revocation_registry_size": 100,
-                                                                                }
-                                                                                credential_definition_body = JSON.stringify(credential_definition_body);
-
-                                                                                $.ajax({
-                                                                                    type: "post",
-                                                                                    url: "http://0.0.0.0:8011/credential-definitions",
-                                                                                    data: credential_definition_body,
-                                                                                    contentType: "application/json",
-                                                                                    success: (res) => {
-
-                                                                                        webix.ajax().get("http://0.0.0.0:8011/credential-definitions/created")
-                                                                                            .then((res) => {
-                                                                                                sessionStorage.setItem("credential_definition_ids", res.json()["credential_definition_ids"]);
-                                                                                                alert("초대장을 발급했습니다.\n이제 Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
-                                                                                            })
-                                                                                            .fail(() => {
-                                                                                                console.log("credential-definition ids 가져오기 실패");
-                                                                                            });
-                                                                                    },
-                                                                                    error: (err) => {
-                                                                                        alert("credential-defitnion [POST]: Error occured");
-                                                                                    }
-                                                                                })
-                                                                            },
-                                                                            error: (err) => {
-                                                                                alert("Schema creation: Error occured");
-                                                                            }
-                                                                        });
+                                                                        alert("Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
                                                                     })
-                                                                    .fail((xhr) => {
-                                                                        alert("초대장을 생성하는 데 실패했습니다.\nIRB 서버 연결 상태를 확인하세요.");
-                                                                    });
+                                                                    .fail(() => { alert("IRB: credential-definition 등록 과정 중 오류 발생"); });
+                                                                })
+                                                                .fail(() => { alert("IRB: 초대장 생성 과정 중 오류 발생"); });
                                                             }
                                                         },
                                                         {
@@ -211,15 +138,17 @@
                                                     var form = $$("signin_form");
                                                     if (form.validate()) {
                                                         var values = form.getValues();
-                                                        values = JSON.stringify(values);
-
-                                                        webix.ajax().post("/irb/process-signin", values)
+                                                        webix.ajax().post("/irb/process-signin", JSON.stringify(values))
                                                             .then((res) => {
-                                                                location.reload();
+                                                                var response = res.text();
+                                                                if (response === "SUCCESS") {
+                                                                    location.reload();
+                                                                } else {
+                                                                    alert("아이디나 비밀번호가 일치하지 않습니다.");
+                                                                    location.reload();
+                                                                }
                                                             })
-                                                            .fail((xhr) => {
-                                                                alert("로그인 시 문제가 발생했습니다.");
-                                                            });
+                                                            .fail(() => { alert("로그인 과정 중 오류 발생"); });
                                                     }
                                                 }
                                             }

@@ -40,14 +40,67 @@ def irb_process_signin() :
 
     if (root_email == email and root_password == password) :
         session['IRB_signin'] = True
-        return redirect(url_for('irb'))
+        ret = 'SUCCESS'
     else :
-        return '<script>alert("Check Inputs");</script>'
+        ret = 'FAIL'
+    return ret
 
 @app.route('/irb/process-signout', methods=['POST'])
 def irb_process_signout() :
+    conn_id = session['IRB_createInvitation']['conn_id']
+    with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
+        print(irb.json())
     session.clear() # 모든 파이썬 세션 삭제
     return 'IRB Sign Out'
+
+@app.route('/irb/create-invitation', methods=['POST'])
+def irb_process_connection() :
+    with requests.post('http://0.0.0.0:8011/connections/create-invitation') as create_res :
+        invitation = create_res.json()['invitation']
+        conn_id = create_res.json()['connection_id']
+
+    session['IRB_createInvitation'] = {
+        'invitation': invitation,
+        'conn_id': conn_id
+    }
+    return 'SUCCESS'
+
+@app.route('/irb/create-creddef', methods=['POST'])
+def irb_create_schema() :
+    # Schmea Creation
+    version = format(
+            "%d.%d.%d"
+            % (random.randint(1, 101), random.randint(1, 101), random.randint(1, 101))
+    )
+
+    schema_body = {
+        "schema_name": "IRB schema",
+        "schema_version": version,
+        "attributes": ["name", "affiliation", "role",
+            "GCP", "IRB_no", "approved_date", "timestamp"],
+    }
+
+    with requests.post('http://0.0.0.0:8011/schemas', json=schema_body) as schema_res :
+        schema_id = schema_res.json()['schema_id']
+
+    # Credential-Definition Creation
+    support_revocation = False
+    TAILS_FILE_COUNT=100
+    credential_definition_body = {
+        "schema_id": schema_id,
+        "support_revocation": support_revocation,
+        "revocation_registry_size": TAILS_FILE_COUNT,
+    }
+
+    with requests.post('http://0.0.0.0:8011/credential-definitions',json=credential_definition_body) as creddef_res :
+        credential_definition_id = creddef_res.json()['credential_definition_id']
+
+    # session['IRB_createCreddef'] = {
+    #     'schema_id': schema_id,
+    #     'credential_definition_id' : credential_definition_id
+    # }
+    
+    return 'SUCCESS'
 
 
 
@@ -82,6 +135,12 @@ def researcher_provider_accept_invitation() :
     session['Provider_inv'] = values
     return 'Researcher accepts Provider invitation'
 
+@app.route('/researcher-provider/send-credential', methods=['POST'])
+def researcher_provider_send_credential() :
+    credential = request.get_json(force=True)
+    session['Researcher_cred_to_provider'] = credential
+    return credential
+
 @app.route('/researcher-consumer')
 def researcher_consumer() :
     inv = False
@@ -108,30 +167,33 @@ def researcher_consumer_present_credential() :
 @app.route('/provider')
 @app.route('/provider/invitation')
 def provider_invitation() :
-    cred = False
-    if 'Researcher_cred_to_provider' in session :
-        cred = True
-    return render_template('provider_invitation.html', credential=cred)
+    authorization = False
+    if 'Provider_receive_cred' in session :
+        authorization = True
+    return render_template('provider_invitation.html', authorization=authorization)
 
 @app.route('/provider/credential')
 def provider_credential() :
     cred = False
+    authorization = False
     if 'Researcher_cred_to_provider' in session :
-        cred = True
-    return render_template('provider_credential.html', credential=cred)
+        cred = session['Researcher_cred_to_provider']
+    if 'Provider_receive_cred' in session :
+        authorization = True
+    return render_template('provider_credential.html', credential=cred, authorizatio=authorization)
 
 @app.route('/provider/data')
 def provider_data() :
-    cred = False
-    if 'Researcher_cred_to_provider' in session :
-        cred = True
+    authorization = False
+    if 'Provider_receive_cred' in session :
+        authorization = True
 
-    return render_template('provider_data.html', credential=cred)
+    return render_template('provider_data.html', authorization=authorization)
 
 @app.route('/provider/receive-credential', methods=['POST'])
 def provider_receive_credential() :
     credential = request.get_json(force=True)
-    session['Researcher_cred_to_provider'] = credential
+    session['Provider_receive_cred'] = credential
     return credential
 
 @app.route('/provider/send-data-consumer', methods=['POST'])
