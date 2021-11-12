@@ -139,10 +139,7 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            credential = JSON.parse(credential);
-                                                            credential = JSON.stringify(credential);
-                                                            console.log(credential);
-                                                            sessionStorage.setItem("Researcher_cred_to_provider", credential);
+                                                            credential = JSON.stringify(JSON.parse(credential));
                                                             webix.ajax().post("/researcher-provider/send-credential", credential)
                                                                 .then((res) => {
                                                                     alert("Provider에게 Credential을 제시했습니다.\nProvider 페이지의 Credential Acceptance 메뉴로 이동하세요.");
