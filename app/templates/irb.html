@@ -65,7 +65,7 @@
                                                     {
                                                         view: "button", value: "Sign Out", width: 100,
                                                         click: () => {
-                                                            webix.ajax().sync().post("/irb/process-signout")
+                                                            webix.ajax().sync().del("/irb/process-signinout")
                                                             location.reload();
                                                         }
                                                     }
@@ -138,7 +138,7 @@
                                                     var form = $$("signin_form");
                                                     if (form.validate()) {
                                                         var values = form.getValues();
-                                                        webix.ajax().post("/irb/process-signin", JSON.stringify(values))
+                                                        webix.ajax().post("/irb/process-signinout", JSON.stringify(values))
                                                             .then((res) => {
                                                                 var response = res.text();
                                                                 if (response === "SUCCESS") {

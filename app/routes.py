@@ -33,26 +33,27 @@ def irb() :
         signin = True
     return render_template('irb.html', IRB_signin=signin)
 
-@app.route('/irb/process-signin', methods=['POST'])
-def irb_process_signin() :
-    values = request.get_json(force=True)
-    email = values['email']
-    password = values['password']
+@app.route('/irb/process-signinout', methods=['POST', 'DELETE'])
+def irb_process_signinout() :
+    if request.method == 'POST' :
+        values = request.get_json(force=True)
+        email = values['email']
+        password = values['password']
 
-    if (root_email == email and root_password == password) :
-        session['IRB_signin'] = True
-        ret = 'SUCCESS'
-    else :
-        ret = 'FAIL'
-    return ret
+        if (root_email == email and root_password == password) :
+            session['IRB_signin'] = True
+            ret = 'SUCCESS'
+        else :
+            ret = 'FAIL'
+        return ret
 
-@app.route('/irb/process-signout', methods=['POST'])
-def irb_process_signout() :
-    conn_id = session['IRB_createInvitation']['conn_id']
-    with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
-        print(irb.json())
-    session.clear() # 모든 파이썬 세션 삭제
-    return 'IRB Sign Out'
+    elif request.method == 'DELETE' :
+        if 'IRB_createInvitation' in session :
+            conn_id = session['IRB_createInvitation']['conn_id']
+            with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
+                print(irb.json())
+        session.clear() # 모든 파이썬 세션 삭제
+        return 'IRB Sign Out'
 
 @app.route('/irb/create-invitation', methods=['POST'])
 def irb_process_connection() :
