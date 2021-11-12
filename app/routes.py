@@ -231,24 +231,24 @@ def researcher_consumer_present_credential() :
 @app.route('/provider/invitation')
 def provider_invitation() :
     authorization = False
-    if 'Provider_receive_cred' in session :
+    if 'Provider_receiveCredential' in session :
         authorization = True
-    return render_template('provider_invitation.html', authorization=authorization)
+    return render_template('provider_invitation.html', authorizatio=authorization)
 
 @app.route('/provider/credential')
 def provider_credential() :
-    cred = False
+    credential = False
     authorization = False
-    if 'Researcher_cred_to_provider' in session :
-        cred = session['Researcher_cred_to_provider']
-    if 'Provider_receive_cred' in session :
+    if 'provider_sendCredential' in session :
+        credential = session['provider_sendCredential'] # provider에게 전달할 credential
+    if 'Provider_receiveCredential' in session :
         authorization = True
-    return render_template('provider_credential.html', credential=cred, authorizatio=authorization)
+    return render_template('provider_credential.html', credential=credential, authorization=authorization)
 
 @app.route('/provider/data')
 def provider_data() :
     authorization = False
-    if 'Provider_receive_cred' in session :
+    if 'Provider_receiveCredential' in session :
         authorization = True
 
     return render_template('provider_data.html', authorization=authorization)
@@ -256,8 +256,8 @@ def provider_data() :
 @app.route('/provider/receive-credential', methods=['POST'])
 def provider_receive_credential() :
     credential = request.get_json(force=True)
-    session['Provider_receive_cred'] = credential
-    return credential
+    session['Provider_receiveCredential'] = credential
+    return 'OK'
 
 @app.route('/provider/send-data-consumer', methods=['POST'])
 def provider_send_credential() :
@@ -276,7 +276,7 @@ def provider_send_credential() :
         # 4) body1, body2 (=data) consumer SFTP로 전송
     providerSFTP_send_data_consumerSFTP(hash1, hash2)
 
-    return 'Data sent from Provider to Consumer'
+    return 'OK'
 
 @app.route('/provider/issue-credential', methods=['POST'])
 def provider_issue_credential() :
@@ -285,7 +285,8 @@ def provider_issue_credential() :
 
     with open(cred_path, 'r') as f :
         credential = f.read()
-    return credential
+    session['Provider_issueCredential'] = credential
+    return 'OK'
 
 
 

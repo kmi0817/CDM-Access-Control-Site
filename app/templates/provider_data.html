@@ -104,19 +104,15 @@
                                                                     var selectedFile = $$("dataView").getSelectedItem();
                                                                     if (selectedFile) {
                                                                         var title = selectedFile.title;
-                                                                        sessionStorage.setItem("file", title); // 선택한 파일 제목 세션에 저장
 
                                                                         var values = { "file": title }; // JSON 형태
-                                                                        values = JSON.stringify(values); // JSON으로 만들기
-
-                                                                        // SFTP 서버로부터 파일 선택하여 로컬에 저장하고, 선택한 파일을 credential로 만들기
-                                                                        webix.ajax().post("/provider/send-data-consumer", values) // researcher한테 cred 발급, consumer한테 데이터 전송
+                                                                        webix.ajax().post("/provider/send-data-consumer", JSON.stringify(values)) // consumer한테 데이터 전송
                                                                             .then((res) => {
                                                                                 alert("Provider가 당신이 선택한 데이터를 Consumer에게 전송하였습니다.\nIssue Credential 버튼을 클릭해주세요.");
                                                                                 $$("issue_cred").show(true, false);
                                                                             })
                                                                             .fail((xhr) => {
-                                                                                alert("Provdier가 consumer에게 데이터를 전송하는 데 실패했습니다.");
+                                                                                alert("Provider: Consumer에게 데이터 전송 과정 중 오류 발생");
                                                                             });
                                                                     } else {
                                                                         alert("선택된 파일이 없습니다.");
@@ -129,8 +125,7 @@
                                                                 click: () => {
                                                                     webix.ajax().post("/provider/issue-credential")
                                                                         .then((res) => {
-                                                                            sessionStorage.setItem("data_credential", JSON.stringify(res.json()));
-                                                                            alert("Credential 발급 완료\nConsumer 페이지로 이동하세요.");
+                                                                            alert("Provider로부터 증명서를 발급받았습니다.\nConsumer 페이지로 이동하여 초대장을 발급받으세요.");
                                                                         })
                                                                 }
                                                             }
