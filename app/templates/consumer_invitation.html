@@ -168,14 +168,17 @@
                                                     var form = $$("signin_form");
                                                     if (form.validate()) {
                                                         var values = form.getValues();
-
-                                                        webix.ajax().post("/consumer/process-signin", JSON.stringify(values))
-                                                            .then(() => {
+                                                        webix.ajax().post("/consumer/process-signinout", JSON.stringify(values))
+                                                        .then((res) => {
+                                                            var response = res.text();
+                                                            if (response === "SUCCESS") {
                                                                 location.reload();
-                                                            })
-                                                            .fail(() => {
-                                                                alert("Consumer 로그인 시 문제 발생");
-                                                            });
+                                                            } else {
+                                                                alert("아이디나 비밀번호가 일치하지 않습니다.");
+                                                                location.reload();
+                                                            }
+                                                        })
+                                                        .fail(() => { alert("Consumer 로그인 과정 중 오류 발생"); });
                                                     }
                                                 }
                                             }

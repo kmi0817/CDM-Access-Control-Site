@@ -329,17 +329,27 @@ def consumer_data() :
     else :
         return render_template('consumer_data.html')
 
-@app.route('/consumer/process-signin', methods=['POST'])
-def consumer_process_signin() :
-    values = request.get_json(force=True)
-    email = values['email']
-    password = values['password']
+@app.route('/consumer/process-signinout', methods=['POST', 'DELETE'])
+def consumer_process_signinout() :
+    if request.method == 'POST' :
+        values = request.get_json(force=True)
+        email = values['email']
+        password = values['password']
 
-    if (root_email == email and root_password == password) :
-        session['Consumer_signin'] = True
-        return redirect(url_for('consumer_invitation'))
-    else :
-        return '<script>alert("Check Inputs");</script>'
+        if (root_email == email and root_password == password) :
+            session['Consumer_signin'] = True
+            ret = 'SUCCESS'
+        else :
+            ret = 'FAIL'
+        return ret
+
+    elif request.method == 'DELETE' :
+        if 'consumer_createInvitation' in session :
+            conn_id = session['consumer_createInvitation']['conn_id']
+            with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
+                print(irb.json())
+        session.pop('Consumer_signin', None)
+        return 'Consumer Sign Out'
 
 @app.route('/consumer/process-signout', methods=['POST'])
 def consumer_process_signout() :
