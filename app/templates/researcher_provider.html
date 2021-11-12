@@ -81,7 +81,7 @@
                                 {
                                     view: "spacer", height: 30
                                 },
-                                {% if Provider_inv %}
+                                {% if my_did %}
                                 {
                                     align: "center", body: {
                                         rows: [
@@ -94,7 +94,7 @@
                                                     {
                                                         view: "textarea", readonly: true,
                                                         label: "DID", labelPosition: "top",
-                                                        value: sessionStorage.getItem("provider_did"),
+                                                        value: `{{my_did}}`,
                                                         placeholder: "DID here"
                                                     },
                                                     {
@@ -103,10 +103,13 @@
                                                     {
                                                         view: "radio", id: "radio", vertical: true,
                                                         label: "Cred_ex_ids", labelPosition: "top",
-                                                        options: sessionStorage.getItem("cred_ex_ids").split(","),
+                                                        options: [
+                                                            {% for id in cred_ex_ids %}
+                                                            `{{id}}`,
+                                                            {% endfor %}
+                                                        ],
                                                         click: () => {
                                                             var cred_ex_id = $$("radio").getValue();
-
                                                             webix.ajax().get(`http://0.0.0.0:8031/issue-credential-2.0/records/${cred_ex_id}`)
                                                                 .then((res) => {
                                                                     var result = res.json();
@@ -154,7 +157,7 @@
                                         ]
                                     }
                                 },
-                                {% else %}
+                                {% elif invitation %}
                                 {
                                     align: "center", body: {
                                         rows: [
@@ -165,44 +168,30 @@
                                                 view: "form", id: "invitaion_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", id: "invition", readonly: true,
+                                                        view: "textarea", id: "invition_textarea", readonly: true,
                                                         autoheight: true, minHeight: 250,
                                                         placeholder: "Invition from Provider here",
-                                                        value: sessionStorage.getItem("provider_invitation")
+                                                        {% if invitation %}
+                                                        value: `{{invitation}}`
+                                                        {% endif %}
                                                     },
                                                     {
                                                         view: "button", value: "Accept Invitation",
                                                         click: () => {
-                                                            var invitation = JSON.stringify(sessionStorage.getItem("provider_invitation"));
-                                                            webix.ajax().post("http://0.0.0.0:8031/connections/receive-invitation", invitation)
-                                                                .then((res) => {
-                                                                    res = res.json();
-                                                                    sessionStorage.setItem("provider_did", res.my_did);
+                                                            var invitation = $$("invition_textarea").getValue();
+                                                            invitation = invitation.replace(/'/gi, '"'); // 작은 따옴표를 큰 따옴표로 대체
+                                                            invitation = JSON.stringify(JSON.parse(invitation));
 
-                                                                    webix.ajax().get("http://0.0.0.0:8031/issue-credential-2.0/records")
-                                                                        .then((res) => {
-                                                                            const records = res.json()["results"]
-                                                                            var cred_ex_ids_arr = new Array();
-                                                                            records.forEach((item) => {
-                                                                                cred_ex_ids_arr.push(item["cred_ex_record"]["cred_ex_id"]);
-                                                                            });
-                                                                            sessionStorage.setItem("cred_ex_ids", cred_ex_ids_arr);
-
-                                                                            webix.ajax().post("/researcher-provider/accept-invitation", invitation)
-                                                                                .then((res) => {
-                                                                                    location.reload();
-                                                                                })
-                                                                                .fail((xhr) => {
-                                                                                    alert("Provider의 초대장을 로컬 스토리지 세션에 등록하지 못하였습니다.");
-                                                                                });
-                                                                        })
-                                                                        .fail((xhr) => {
-                                                                            alert("wallet에서 credential records를 가져오는 데 실패했습니다.");
-                                                                        });
-                                                                })
-                                                                .fail((xhr) => {
-                                                                    alert("Researcher 서버 상태를 확인해주세요.");
-                                                                });
+                                                            webix.ajax().post("/receive-invitation/provider")
+                                                            .then((res) => {
+                                                                var response = res.text();
+                                                                if (response === "OK") {
+                                                                    location.reload();
+                                                                } else {
+                                                                    alert("먼저 IRB의 초대장을 받으세요.");
+                                                                }
+                                                            })
+                                                            .fail(() => { alert("Researcher: 초대장 수락 과정 중 오류 발생"); });
                                                         }
                                                     }
                                                 ]

@@ -172,7 +172,7 @@
                                                             invitation = invitation.replace(/'/gi, '"'); // 작은 따옴표를 큰 따옴표로 대체
                                                             invitation = JSON.stringify(JSON.parse(invitation));
 
-                                                            webix.ajax().post("/researcher-irb/receive-invitation")
+                                                            webix.ajax().post("/receive-invitation/irb")
                                                             .then((res) => {
                                                                 var response = res.text();
                                                                 if (response === "OK") {

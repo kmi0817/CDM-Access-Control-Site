@@ -57,8 +57,7 @@ def irb_process_signinout() :
         return 'IRB Sign Out'
 
 @app.route('/create-invitation/<server>', methods=['POST'])
-def irb_process_connection(server) :
-    print(server)
+def create_invitation_server(server) :
     if server == 'irb' :
         port = 8011
     elif server == 'provider' :
@@ -121,20 +120,20 @@ def researcherIrb() :
     cred_def_ids = False
     if 'irb_createInvitation' in session :
         invitation = session['irb_createInvitation']['invitation']
-    if 'Researcher_IRBreceiveInvitation' in session :
-        my_did = session['Researcher_IRBreceiveInvitation']['my_did']
+    if 'Researcher_irbreceiveInvitation' in session :
+        my_did = session['Researcher_irbreceiveInvitation']['my_did']
         with requests.get('http://0.0.0.0:8011/credential-definitions/created') as created_res :
             cred_def_ids = created_res.json()['credential_definition_ids']
     return render_template('researcher_irb.html', invitation=invitation, my_did=my_did, cred_def_ids=cred_def_ids)
 
-@app.route('/researcher-irb/receive-invitation', methods=['POST'])
-def researcherIrb_receive_invitation() :
-    if 'irb_createInvitation' in session :
-        invitation = session['irb_createInvitation']['invitation']
+@app.route('/receive-invitation/<server>', methods=['POST'])
+def receive_invitation_server(server) :
+    if f'{server}_createInvitation' in session :
+        invitation = session[f'{server}_createInvitation']['invitation']
 
         with requests.post('http://0.0.0.0:8031/connections/receive-invitation', json=invitation) as receive_res :
             my_did = receive_res.json()['my_did']
-        session['Researcher_IRBreceiveInvitation'] = {
+        session[f'Researcher_{server}receiveInvitation'] = {
             "my_did" : my_did
         }
         return 'OK'
@@ -183,22 +182,27 @@ def researcherIrb_issue_credential() :
 
 @app.route('/researcher-provider')
 def researcher_provider() :
-    inv = False
-    if 'Provider_inv' in session :
-        inv = True
-    return render_template('researcher_provider.html', Provider_inv=inv)
+    invitation = False
+    my_did = False
+    cred_ex_ids = False
+    if 'provider_createInvitation' in session :
+        invitation = session['provider_createInvitation']['invitation']
+    if 'Researcher_providerreceiveInvitation' in session :
+        my_did = session['Researcher_providerreceiveInvitation']['my_did']
 
-@app.route('/researcher-provider/accept-invitation', methods=['POST'])
-def researcher_provider_accept_invitation() :
-    values = request.get_json(force=True)
-    session['Provider_inv'] = values
-    return 'Researcher accepts Provider invitation'
+        with requests.get('http://0.0.0.0:8031/issue-credential-2.0/records') as records_res :
+            records = records_res.json()['results']
+            cred_ex_ids = [] # list
+            for record in records :
+                cred_ex_ids.append(record['cred_ex_record']['cred_ex_id'])
+            
+    return render_template('researcher_provider.html', invitation=invitation, my_did=my_did, cred_ex_ids=cred_ex_ids)
 
 @app.route('/researcher-provider/send-credential', methods=['POST'])
 def researcher_provider_send_credential() :
     credential = request.get_json(force=True)
-    session['Researcher_cred_to_provider'] = credential
-    return credential
+    session['provider_sendCredential'] = credential # provider에게 전달할 credential
+    return 'OK'
 
 @app.route('/researcher-consumer')
 def researcher_consumer() :
