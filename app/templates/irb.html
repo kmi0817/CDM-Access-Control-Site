@@ -99,7 +99,7 @@
                                                         {
                                                             view: "button", value: "Create Invitation", width: 200,
                                                             click: () => {
-                                                                webix.ajax().post("/irb/create-invitation")
+                                                                webix.ajax().post("/create-invitation/irb")
                                                                 .then((res) => {
                                                                     webix.ajax().post("/irb/create-creddef")
                                                                     .then((res) => {

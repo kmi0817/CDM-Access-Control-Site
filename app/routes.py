@@ -49,20 +49,26 @@ def irb_process_signinout() :
         return ret
 
     elif request.method == 'DELETE' :
-        if 'IRB_createInvitation' in session :
-            conn_id = session['IRB_createInvitation']['conn_id']
+        if 'irb_createInvitation' in session :
+            conn_id = session['irb_createInvitation']['conn_id']
             with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
                 print(irb.json())
         session.clear() # 모든 파이썬 세션 삭제
         return 'IRB Sign Out'
 
-@app.route('/irb/create-invitation', methods=['POST'])
-def irb_process_connection() :
-    with requests.post('http://0.0.0.0:8011/connections/create-invitation') as create_res :
+@app.route('/create-invitation/<server>', methods=['POST'])
+def irb_process_connection(server) :
+    print(server)
+    if server == 'irb' :
+        port = 8011
+    elif server == 'provider' :
+        port = 8051
+
+    with requests.post(f'http://0.0.0.0:{port}/connections/create-invitation') as create_res :
         invitation = create_res.json()['invitation']
         conn_id = create_res.json()['connection_id']
 
-    session['IRB_createInvitation'] = {
+    session[f'{server}_createInvitation'] = {
         'invitation': invitation,
         'conn_id': conn_id
     }
@@ -113,8 +119,8 @@ def researcherIrb() :
     invitation = False
     my_did = False
     cred_def_ids = False
-    if 'IRB_createInvitation' in session :
-        invitation = session['IRB_createInvitation']['invitation']
+    if 'irb_createInvitation' in session :
+        invitation = session['irb_createInvitation']['invitation']
     if 'Researcher_IRBreceiveInvitation' in session :
         my_did = session['Researcher_IRBreceiveInvitation']['my_did']
         with requests.get('http://0.0.0.0:8011/credential-definitions/created') as created_res :
@@ -123,8 +129,8 @@ def researcherIrb() :
 
 @app.route('/researcher-irb/receive-invitation', methods=['POST'])
 def researcherIrb_receive_invitation() :
-    if 'IRB_createInvitation' in session :
-        invitation = session['IRB_createInvitation']['invitation']
+    if 'irb_createInvitation' in session :
+        invitation = session['irb_createInvitation']['invitation']
 
         with requests.post('http://0.0.0.0:8031/connections/receive-invitation', json=invitation) as receive_res :
             my_did = receive_res.json()['my_did']
@@ -159,7 +165,7 @@ def researcherIrb_issue_credential() :
         ]
     }
     exchange_tracing = False
-    conn_id = session['IRB_createInvitation']['conn_id']
+    conn_id = session['irb_createInvitation']['conn_id']
     offer_request = {
         "connection_id": conn_id,
         "comment": f"Offer on cred def id {cred_def_id}",
