@@ -62,6 +62,8 @@ def create_invitation_server(server) :
         port = 8011
     elif server == 'provider' :
         port = 8051
+    elif server == 'consumer' :
+        port = 8061
 
     with requests.post(f'http://0.0.0.0:{port}/connections/create-invitation') as create_res :
         invitation = create_res.json()['invitation']
@@ -206,24 +208,23 @@ def researcher_provider_send_credential() :
 
 @app.route('/researcher-consumer')
 def researcher_consumer() :
-    inv = False
-    if 'Consumer_inv' in session :
-        inv = True
+    invitation = False
+    my_did = False
+    credential = False
+    if 'consumer_createInvitation' in session :
+        invitation = session['consumer_createInvitation']['invitation']
+    if 'Researcher_consumerreceiveInvitation' in session :
+        my_did = session['Researcher_consumerreceiveInvitation']['my_did']
+    if 'Provider_issueCredential' in session :
+        credential = session['Provider_issueCredential']
 
-    return render_template('researcher_consumer.html', Consumer_inv=inv)
+    return render_template('researcher_consumer.html', invitation=invitation, my_did=my_did, credential=credential)
 
-@app.route('/researcher-consumer/accept-invitation', methods=['POST'])
-def researcher_consumer_accept_invitation() :
-    values = request.get_json(force=True)
-    session['Consumer_inv'] = values
-    return 'Researcher accepts Consumer invitation'
-
-@app.route('/researcher-consumer/present-credential', methods=['POST'])
-def researcher_consumer_present_credential() :
+@app.route('/researcher-consumer/send-credential', methods=['POST'])
+def researcher_consumer_send_credential() :
     credential = request.get_json(force=True)
-    session['data_cred'] = credential
-
-    return credential
+    session['consumer_sendCredential'] = credential # consumer에게 전달할(=제시할) credenti
+    return 'OK'
 
 
 
@@ -233,7 +234,7 @@ def provider_invitation() :
     authorization = False
     if 'Provider_receiveCredential' in session :
         authorization = True
-    return render_template('provider_invitation.html', authorizatio=authorization)
+    return render_template('provider_invitation.html', authorization=authorization)
 
 @app.route('/provider/credential')
 def provider_credential() :
@@ -297,6 +298,7 @@ def consumer_invitation() :
     cred = False
     if 'Consumer_signin' in session :
         signin = True
+
     return render_template('consumer_invitation.html', Consumer_signin=signin)
 
 @app.route('/consumer/credential')
