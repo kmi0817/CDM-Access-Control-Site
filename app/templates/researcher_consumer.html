@@ -81,7 +81,7 @@
                                 {
                                     view: "spacer", height: 30
                                 },
-                                {% if Consumer_inv %}
+                                {% if invitation %}
                                 {
                                     align: "center", body: {
                                         rows: [
@@ -94,7 +94,7 @@
                                                     {
                                                         view: "textarea", readonly: true,
                                                         label: "DID", labelPosition: "top",
-                                                        value: sessionStorage.getItem("consumer_did"),
+                                                        value: `{{my_did}}`,
                                                         placeholder: "DID here"
                                                     },
                                                     {
@@ -104,7 +104,7 @@
                                                         view: "textarea", id: "credential", readonly: true,
                                                         label: "Credential", labelPosition: "top",
                                                         minHeight: 250, placeholder: "credential here",
-                                                        value: sessionStorage.getItem("data_credential")
+                                                        value: `{{credential}}`
                                                     },
                                                     {
                                                         view: "spacer", height: 20
@@ -113,8 +113,12 @@
                                                         view: "button", value: "Present Credential",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
-                                                            sessionStorage.setItem("data_credential_to_consumer", credential)
-                                                            alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
+                                                            credential = JSON.stringify(JSON.parse(credential));
+                                                            webix.ajax().post("/researcher-consumer/send-credential", credential)
+                                                            .then((res) => {
+                                                                alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
+                                                            })
+                                                            .fail(() => { alert("Consumer에게 Credential을 제시하는 데 실패했습니다.")});
                                                         }
                                                     }
                                                 ]
@@ -133,31 +137,30 @@
                                                 view: "form", id: "invitaion_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", id: "invition", readonly: true,
+                                                        view: "textarea", id: "invition_textarea", readonly: true,
                                                         autoheight: true, minHeight: 250,
                                                         placeholder: "Invition from Consumer here",
-                                                        value: sessionStorage.getItem("consumer_invitation")
+                                                        {% if invitation %}
+                                                        value: `{{invitation}}`
+                                                        {% endif %}
                                                     },
                                                     {
                                                         view: "button", value: "Accept Invitation",
                                                         click: () => {
-                                                            var invitation = JSON.stringify(sessionStorage.getItem("consumer_invitation"));
-                                                            webix.ajax().post("http://0.0.0.0:8031/connections/receive-invitation", invitation)
-                                                                .then((res) => {
-                                                                    res = res.json();
-                                                                    sessionStorage.setItem("consumer_did", res.my_did);
+                                                            var invitation = $$("invition_textarea").getValue();
+                                                            invitation = invitation.replace(/'/gi, '"'); // 작은 따옴표를 큰 따옴표로 대체
+                                                            invitation = JSON.stringify(JSON.parse(invitation));
 
-                                                                    webix.ajax().post("/researcher-consumer/accept-invitation", invitation)
-                                                                        .then((res) => {
-                                                                            location.reload();
-                                                                        })
-                                                                        .fail(() => {
-                                                                            alert("초대장 세션을 등록하지 못하였습니다.");
-                                                                        })
-                                                                })
-                                                                .fail(() => {
-                                                                    alert("Researcher 서버 상태를 확인해주세요.");
-                                                                });
+                                                            webix.ajax().post("/receive-invitation/consumer")
+                                                            .then((res) => {
+                                                                var response = res.text();
+                                                                if (response === "OK") {
+                                                                    location.reload();
+                                                                } else {
+                                                                    alert("먼저 Consumer의 초대장을 받으세요.");
+                                                                }
+                                                            })
+                                                            .fail(() => { alert("Researcher: 초대장 수락 과정 중 오류 발생"); });
                                                         }
                                                     }
                                                 ]
