@@ -10,8 +10,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- <link rel="stylesheet" href="../static/upload.css" type="text/css"> -->
 
-    <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css">
-    <!-- <link rel="stylesheet" href="../static/webix.css" type="text/css"> -->
+    <!-- <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css"> -->
+    <link rel="stylesheet" href="../static/Researcher_style.css" type="text/css">
 
     <link rel="stylesheet" href="//cdn.webix.com/materialdesignicons/5.8.95/css/materialdesignicons.min.css"
         type="text/css" charset="utf-8">
@@ -52,27 +52,32 @@
                         body: {
                             rows: [
                                 {
-                                    view: "toolbar", height: 50,
+                                    view: "toolbar", height: 80, css: {"background-color": "#1CA1C1"},
                                     elements: [
                                         {
-                                            view: "button", value: "Researcher", width: 100,
+                                            view: "button", value: "<span style='color: white; font-size: 1.5em;'>Researcher</span>", autowidth: true,
+                                            css: "webix_transparent",
                                             click: () => { location.href = "/researcher-irb"; }
                                         },
                                         {
                                             align: "right", body: {
-                                                cols: [
+                                                height: 80, cols: [
                                                     {
-                                                        view: "button", value: "IRB connection", width: 200,
-                                                        click: () => { location.href="/researcher-irb"; }
+                                                        view: "button", value: "<span style='color: white; font-size: 1.1em;'>IRB connection</span>", width: 200,
+                                                        css: "webix_transparent",
+                                                        click: () => { location.href="/researcher-irb"; },
                                                     },
                                                     {
-                                                        view: "button", value: "Provider connection", width: 200,
+                                                        view: "button", value: "<span style='color: white; font-size: 1.1em;'>Provider connection</span>", width: 200,
+                                                        css: "webix_transparent",
                                                         click: () => { location.href="/researcher-provider"; }
                                                     },
                                                     {
-                                                        view: "button", value: "Consumer connection", width: 200,
+                                                        view: "button", value: "<span style='color: white; font-size: 1.1em;'>Consumer connection</span>", width: 200,
+                                                        css: "webix_transparent",
                                                         click: () => { location.href="/researcher-consumer"; }
-                                                    }
+                                                    },
+                                                    { view: "spacer", width: 20 }
                                                 ]
                                             }
                                         },
@@ -136,7 +141,7 @@
                                                         view: "spacer", height: 20
                                                     },
                                                     {
-                                                        view: "button", value: "Present Credential",
+                                                        view: "button", value: "Present Credential", css: "webix_primary",
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
                                                             if (credential) {
@@ -177,7 +182,7 @@
                                                         {% endif %}
                                                     },
                                                     {
-                                                        view: "button", value: "Accept Invitation",
+                                                        view: "button", value: "Accept Invitation", css: "webix_primary",
                                                         click: () => {
                                                             var invitation = $$("invition_textarea").getValue();
                                                             invitation = invitation.replace(/'/gi, '"'); // 작은 따옴표를 큰 따옴표로 대체
