@@ -134,12 +134,16 @@
                                                         view: "button", value: "Submit",
                                                         click: () => {
                                                             var id = $$("credential_definition_ids").getValue();
-                                                            var values = {
-                                                                "credential_definition_id" : id
+                                                            if (id) {
+                                                                var values = {
+                                                                    "credential_definition_id" : id
+                                                                }
+                                                                webix.ajax().post("/researcher-irb/issue-credential", JSON.stringify(values))
+                                                                .then((res) => { alert("IRB로부터 증명서를 발급받았습니다.\nProvider 페이지로 이동하여 초대장을 발급받으세요."); })
+                                                                .fail(() => { alert("IRB로부터 증명서 발급받는 과정 중 오류 발생"); });
+                                                            } else {
+                                                                alert("선택된 Credential-Definition이 없습니다.");
                                                             }
-                                                            webix.ajax().post("/researcher-irb/issue-credential", JSON.stringify(values))
-                                                            .then((res) => { alert("IRB로부터 증명서를 발급받았습니다.\nProvider 페이지로 이동하여 초대장을 발급받으세요."); })
-                                                            .fail(() => { alert("IRB로부터 증명서 발급받는 과정 중 오류 발생"); });
                                                         }
                                                     }
                                                 ]
