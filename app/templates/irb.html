@@ -52,18 +52,19 @@
                         body: {
                             rows: [
                                 {
-                                    view: "toolbar", height: 50,
+                                    view: "toolbar", height: 80,
                                     elements: [
                                         {
-                                            view: "button", value: "IRB", width: 100,
+                                            view: "button", value: "<span style='color: #1CA1C1; font-size: 1.5em;'>IRB</span>",
+                                            width: 100, css: "webix_transparent",
                                             click: () => { location.href = "/irb"; }
                                         },
                                         {
                                             align: "right", body: {
-                                                cols: [
+                                                height: 80, cols: [
                                                     {% if IRB_signin %}
                                                     {
-                                                        view: "button", value: "Sign Out", width: 100,
+                                                        view: "button", value: "<span style='color: #1CA1C1; font-size: 1.1em;'>Sign Out</span>", width: 100, css: "webix_transparent",
                                                         click: () => {
                                                             webix.ajax().sync().del("/irb/process-signinout")
                                                             location.reload();
@@ -71,7 +72,7 @@
                                                     }
                                                     {% else %}
                                                     {
-                                                        view: "button", value: "Sign In", width: 100,
+                                                        view: "button", value: "<span style='color: #1CA1C1; font-size: 1.1em;'>Sign In</span>", width: 100, css: "webix_transparent",
                                                         click: () => { location.href = "/"; }
                                                     }
                                                     {% endif %}
