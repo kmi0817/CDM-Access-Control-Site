@@ -107,26 +107,16 @@
                                                 view: "form", id: "filedownload_form", width: 700,
                                                 elements: [
                                                     {
-                                                        view: "textarea", id: "file", readonly: true,
-                                                        label: "File Name", labelPosition: "top",
-                                                        placeholder: "File Name here", height: 250,
+                                                        view: "textarea", id: "file_textarea", readonly: true,
+                                                        label: "File", labelPosition: "top",
+                                                        placeholder: "File here", height: 250,
                                                         {% if file %}
                                                         value: `{{file}}`
                                                         {% endif %}
                                                     },
                                                     {
                                                         view: "button", value: "download", click: () => {
-                                                            var values = {
-                                                                "title": sessionStorage.getItem("file"),
-                                                                "body": `{{file}}`
-                                                            }
-                                                            webix.ajax().post("/consumer/data-download", JSON.stringify(values))
-                                                                .then((res) => {
-                                                                    alert("다운로드된 파일은 /app/consumer_file에 저장되었습니다.");
-                                                                })
-                                                                .fail(() => {
-                                                                    alert("파일 다운받는 데 실패했습니다.");
-                                                                });
+                                                            location.href="/consumer/data-download";
                                                         }
                                                     }
                                                 ]
@@ -142,7 +132,7 @@
                     },
                 ]
             })
-        })
+        });
     </script>
 </body>
 

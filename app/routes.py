@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, redirect, url_for, session, request, json, jsonify
+from flask import render_template, redirect, url_for, session, request, json, send_file
 import paramiko
 import random
 from time import time
@@ -264,6 +264,7 @@ def provider_receive_credential() :
 def provider_send_credential() :
     file = request.get_json(force=True) # 웹 페이지로부터 선택한 파일 가져오기
     title = file['file'] # 파일의 제목만 추출
+    session['selected_file'] = title # 세션 등록
 
     file_path, current_path = providerSFTP_get(title) # SFTP로부터 파일 가져오기
 
@@ -295,10 +296,8 @@ def provider_issue_credential() :
 @app.route('/consumer/invitation')
 def consumer_invitation() :
     signin = False
-    cred = False
     if 'Consumer_signin' in session :
         signin = True
-
     return render_template('consumer_invitation.html', Consumer_signin=signin)
 
 @app.route('/consumer/credential')
@@ -313,7 +312,7 @@ def consumer_credential() :
 
 @app.route('/consumer/data')
 def consumer_data() :
-    if 'Researcher_cred_to_consumer' in session :
+    if 'Consumer_receiveCredential' in session :
         hash1 = "sCDC0109267107"
         hash2 = "secM0803220193"
         consumerSFPT_get_body(hash1, hash2) # SFTP에서 로컬로 파일 다운로드
@@ -323,13 +322,22 @@ def consumer_data() :
         body1 = b64decode(body1.encode('utf-8'))
         body2 = b64decode(body2.encode('utf-8'))
 
-        data_credential = session['Researcher_cred_to_consumer']
+        data_credential = session['Consumer_receiveCredential']
         key1 = b64decode(data_credential['key1'].encode('utf-8'))
         key2 = b64decode(data_credential['key2'].encode('utf-8'))
         iv = b64decode(data_credential['seed'].encode('utf-8'))
 
         body = twoChannelDecrytion(key1, key2, iv, body1, body2)
         body = body.decode('utf-8') # byte array -> string
+
+        current_path = os.getcwd() # 현재 working directory 경로 가져오기
+        title = session['selected_file']
+        file_path = os.path.join(current_path, 'app', 'consumer_file', title)
+        if os.path.exists(file_path) == False : # 파일 없으면 Consumer SFTP에 파일 업로드
+            with open(file_path, 'w') as f :
+                f.write(body)
+            sftp_path = f'/repo_test/consumer/{title}' # SFTP 경로
+            sftp.put(file_path, sftp_path) # 파일 다운로드
         return render_template('consumer_data.html', file=body)
     else :
         return render_template('consumer_data.html')
@@ -355,6 +363,7 @@ def consumer_process_signinout() :
                 print(irb.json())
         session.pop('Consumer_signin', None)
         session.pop('consumer_sendCredential', None)
+        session.pop('Consumer_receiveCredential', None)
         return 'Consumer Sign Out'
 
 @app.route('/consumer/receive-credential', methods=['POST'])
@@ -363,20 +372,14 @@ def consumer_receive_credential() :
     session['Consumer_receiveCredential'] = credential
     return 'OK'
 
-@app.route('/consumer/data-download', methods=['POST'])
+@app.route('/consumer/data-download')
 def consumer_data_download() :
     # 파일 생성
-    values = request.get_json(force=True)
-    title = values['title']
-    body = values['body']
-
+    file_title = session['selected_file']
     current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = os.path.join(current_path, 'app', 'consumer_file', title)
+    file_path = os.path.join(current_path, 'app', 'consumer_file', file_title)
 
-    with open(file_path, 'w') as f :
-        f.write(body)
-
-    return 'done'
+    return send_file(file_path, as_attachment=True)
 
 
 
