@@ -123,22 +123,12 @@
                                                         {
                                                             view: "button", value: "Create Invitation", width: 200,
                                                             click: () => {
-                                                                // 초대장 받기
-                                                                webix.ajax().post("http://0.0.0.0:8061/connections/create-invitation")
-                                                                    .then((res) => {
-                                                                        var invitation = res.json().invitation; // 초대장 받기
-                                                                        invitation = JSON.stringify(invitation);
-                                                                        sessionStorage.setItem("consumer_invitation", invitation); // 초대장 세션 등록
-
-                                                                        var connection_id = res.json().connection_id; // connection id 받기
-                                                                        sessionStorage.setItem("consumer_connection_id", connection_id); // connection id 세션 등록
-                                                                    
-                                                                        alert("Researcher한테 초대장을 전송했습니다.\n이제 Researcher 페이지의 consumer connection 메뉴로 이동하세요.");
-                                                                    })
-                                                                    .fail((xhr) => {
-                                                                        alert("초대장을 생성하는 데 실패했습니다.\nConsumer 서버 연결 상태를 확인하세요.");
-                                                                    });
-                                                                }
+                                                                webix.ajax().post("/create-invitation/consumer")
+                                                                .then((res) => {
+                                                                    alert("Researcher 페이지의 Consumer connection 메뉴로 이동하세요.");
+                                                                })
+                                                                .fail(() => {alert("Consumer: 초대장 생성 과정 중 오류 발생");});
+                                                            }
                                                         },
                                                         {
                                                             view: "spacer", height: 30
