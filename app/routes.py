@@ -304,9 +304,12 @@ def consumer_invitation() :
 @app.route('/consumer/credential')
 def consumer_credential() :
     signin = False
+    credential = False
     if 'Consumer_signin' in session :
         signin = True
-    return render_template('consumer_credential.html', Consumer_signin=signin)
+    if 'consumer_sendCredential' in session : # researcher가 consumer에게 제시한 credential
+        credential = session['consumer_sendCredential']
+    return render_template('consumer_credential.html', Consumer_signin=signin, credential=credential)
 
 @app.route('/consumer/data')
 def consumer_data() :
@@ -351,18 +354,14 @@ def consumer_process_signinout() :
             with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
                 print(irb.json())
         session.pop('Consumer_signin', None)
+        session.pop('consumer_sendCredential', None)
         return 'Consumer Sign Out'
-
-@app.route('/consumer/process-signout', methods=['POST'])
-def consumer_process_signout() :
-    session.pop('Consumer_signin', None)
-    return 'consumer Sign Out'
 
 @app.route('/consumer/receive-credential', methods=['POST'])
 def consumer_receive_credential() :
     credential = request.get_json(force=True)
-    session['Researcher_cred_to_consumer'] = credential
-    return credential
+    session['Consumer_receiveCredential'] = credential
+    return 'OK'
 
 @app.route('/consumer/data-download', methods=['POST'])
 def consumer_data_download() :

@@ -114,6 +114,7 @@
                                                         click: () => {
                                                             var credential = $$("credential").getValue();
                                                             credential = JSON.stringify(JSON.parse(credential));
+                                                            console.log(credential);
                                                             webix.ajax().post("/researcher-consumer/send-credential", credential)
                                                             .then((res) => {
                                                                 alert("Consumer에게 Credential을 제시했습니다.\nConsumer 페이지의 Credential Acceptance 메뉴로 이동하세요.");
