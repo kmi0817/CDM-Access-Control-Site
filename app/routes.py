@@ -312,6 +312,10 @@ def consumer_credential() :
 
 @app.route('/consumer/data')
 def consumer_data() :
+    signin = False
+    if 'Consumer_signin' in session :
+        signin = True
+
     if 'Consumer_receiveCredential' in session :
         hash1 = "sCDC0109267107"
         hash2 = "secM0803220193"
@@ -338,7 +342,7 @@ def consumer_data() :
                 f.write(body)
             sftp_path = f'/repo_test/consumer/{title}' # SFTP 경로
             sftp.put(file_path, sftp_path) # 파일 다운로드
-        return render_template('consumer_data.html', file=body)
+        return render_template('consumer_data.html', Consumer_signin=signin, file=body)
     else :
         return render_template('consumer_data.html')
 
