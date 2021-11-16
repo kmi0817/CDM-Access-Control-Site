@@ -344,7 +344,7 @@ def consumer_data() :
             sftp.put(file_path, sftp_path) # 파일 다운로드
         return render_template('consumer_data.html', Consumer_signin=signin, file=body)
     else :
-        return render_template('consumer_data.html')
+        return render_template('consumer_data.html', Consumer_signin=signin)
 
 @app.route('/consumer/process-signinout', methods=['POST', 'DELETE'])
 def consumer_process_signinout() :
@@ -363,8 +363,9 @@ def consumer_process_signinout() :
     elif request.method == 'DELETE' :
         if 'consumer_createInvitation' in session :
             conn_id = session['consumer_createInvitation']['conn_id']
-            with requests.delete(f'http://0.0.0.0:8011/connections/{conn_id}') as irb :
+            with requests.delete(f'http://0.0.0.0:8061/connections/{conn_id}') as irb :
                 print(irb.json())
+        session.pop('consumer_createInvitation', None)
         session.pop('Consumer_signin', None)
         session.pop('consumer_sendCredential', None)
         session.pop('Consumer_receiveCredential', None)
