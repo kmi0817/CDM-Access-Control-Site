@@ -4,9 +4,7 @@ from flask import render_template, session, request, json, send_file
 import paramiko
 import random
 from time import time
-import time
 import os.path
-import sys
 import requests
 from base64 import b64decode, b64encode
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -19,6 +17,14 @@ root_email, root_password = "asd@asd.com", "asd"
 # SFTP 정보
 host, port = '220.149.241.75', 3302
 username, password = "aiiaabc_5", "aiia&abc!tjqj5"
+
+# 폴더 경로
+path = os.getcwd()
+provider_path = path + '/app/provider_file'
+provider_sftp_path = '/repo_test/provider'
+
+consumer_path = path + '/app/consumer_file'
+consumer_sftp_path = '/repo_test/consumer'
 
 @app.route('/')
 @app.route('/irb')
@@ -251,7 +257,7 @@ def provider_data() :
             transport.connect(None, username, password) # 사용사 인증
             sftp = paramiko.SFTPClient.from_transport(transport) # 시작
 
-            file_list = sftp.listdir('/repo_test/provider') # provider SFTP 내 파일 목록 가져오기
+            file_list = sftp.listdir(provider_sftp_path) # provider SFTP 내 파일 목록 가져오기
             file_dict = dict() # 빈 딕셔너리
             index = 1
             for file in file_list :
@@ -280,7 +286,7 @@ def provider_send_credential() :
     title = file['file'] # 파일의 제목만 추출
     session['selected_file'] = title # 세션 등록
 
-    file_path, current_path = providerSFTP_get(title) # SFTP로부터 파일 가져오기
+    file_path = providerSFTP_get(title) # SFTP로부터 파일 가져오기
 
     # 암호화
         # 1) 파일 내용 읽기
@@ -288,7 +294,7 @@ def provider_send_credential() :
         # 2) 데이터, 키 2개씩 생성
     key1, key2, iv, hash1, hash2 = create_2key_and_2data(body)
         # 3) file 폴더에 credential을 저장
-    ret = save_credential_in_file(current_path, key1, key2, iv)
+    save_credential_in_file(key1, key2, iv)
         # 4) body1, body2 (=data) consumer SFTP로 전송
     providerSFTP_send_data_consumerSFTP(hash1, hash2)
 
@@ -296,9 +302,7 @@ def provider_send_credential() :
 
 @app.route('/provider/issue-credential', methods=['POST'])
 def provider_issue_credential() :
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    cred_path = os.path.join(current_path, 'app', 'file', 'credential.json') # 경로 병합해 새 경로 생성
-
+    cred_path = os.path.join(provider_path, 'credential.json')
     with open(cred_path, 'r') as f :
         credential = f.read()
     session['Provider_issueCredential'] = credential
@@ -335,7 +339,7 @@ def consumer_data() :
         hash2 = "secM0803220193"
         consumerSFPT_get_body(hash1, hash2) # SFTP에서 로컬로 파일 다운로드
 
-        body1, body2 = twoChannelLoad(hash1, hash2, 'consumer_file') # 파일 암호화된 body 가져오기
+        body1, body2 = twoChannelLoad(hash1, hash2) # 파일 암호화된 body 가져오기
 
         body1 = b64decode(body1.encode('utf-8'))
         body2 = b64decode(body2.encode('utf-8'))
@@ -348,14 +352,27 @@ def consumer_data() :
         body = twoChannelDecrytion(key1, key2, iv, body1, body2)
         body = body.decode('utf-8') # byte array -> string
 
-        current_path = os.getcwd() # 현재 working directory 경로 가져오기
         title = session['selected_file']
-        file_path = os.path.join(current_path, 'app', 'consumer_file', title)
+        file_path = os.path.join(consumer_path, title)
         if os.path.exists(file_path) == False : # 파일 없으면 Consumer SFTP에 파일 업로드
             with open(file_path, 'w') as f :
                 f.write(body)
-            sftp_path = f'/repo_test/consumer/{title}' # SFTP 경로
-            sftp.put(file_path, sftp_path) # 파일 다운로드
+            sftp_path = os.path.join(consumer_sftp_path, title) # SFTP 경로
+
+            try: # SFTP
+                transport = paramiko.Transport((host, port)) # transport 열기
+                transport.connect(None, username, password) # 사용사 인증
+                sftp = paramiko.SFTPClient.from_transport(transport) # 시작
+
+                sftp.put(file_path, sftp_path) # 파일 다운로드
+
+                if sftp :
+                    sftp.close()
+                if transport :
+                    transport.close()
+            except SSHException :
+                print('### SFTPClient error ###')
+
         return render_template('consumer_data.html', Consumer_signin=signin, file=body)
     else :
         return render_template('consumer_data.html', Consumer_signin=signin)
@@ -395,8 +412,7 @@ def consumer_receive_credential() :
 def consumer_data_download() :
     # 파일 생성
     file_title = session['selected_file']
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = os.path.join(current_path, 'app', 'consumer_file', file_title)
+    file_path = os.path.join(consumer_path, file_title)
 
     return send_file(file_path, as_attachment=True)
 
@@ -453,29 +469,27 @@ def twoChannelDecrytion(key1, key2, iv, body1, body2):
     return body
 
 def twoChannelStore(body1, body2):
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-
     hash1 = "sCDC0109267107"
-    hash1_path = os.path.join(current_path, 'app', "file", hash1) # 경로 병합해 새 경로 생성
+    hash1_path = os.path.join(provider_path, hash1) # 경로 병합해 새 경로 생성
     file1 = open(hash1_path, 'w')
     file1.write(body1)
     file1.close()
     hash2 = "secM0803220193"
-    hash2_path = os.path.join(current_path, 'app', "file", hash2) # 경로 병합해 새 경로 생성
+    hash2_path = os.path.join(provider_path, hash2) # 경로 병합해 새 경로 생성
     file2 = open(hash2_path, 'w')
     file2.write(body2)
     file2.close()
     return hash1, hash2
     
-def twoChannelLoad(hash1, hash2, directory):
+def twoChannelLoad(hash1, hash2):
     current_path = os.getcwd() # 현재 working directory 경로 가져오기
 
-    hash1_path = os.path.join(current_path, 'app', directory, hash1) # 경로 병합해 새 경로 생성
+    hash1_path = os.path.join(consumer_path, hash1) # 경로 병합해 새 경로 생성
     file1 = open(hash1_path, 'r')
     body1 = file1.read()
     file1.close()
 
-    hash2_path = os.path.join(current_path, 'app', directory, hash2) # 경로 병합해 새 경로 생성
+    hash2_path = os.path.join(consumer_path, hash2) # 경로 병합해 새 경로 생성
     file2 = open(hash2_path, 'r')
     body2 = file2.read()
     file2.close()
@@ -486,10 +500,9 @@ def twoChannelLoad(hash1, hash2, directory):
 # routes.py > provider_send_credential에서 사용하는 함수
 def file_read(file_path) :
     body = '' # empty data content
-    with open(file_path, "r") as f :
+    with open(file_path, 'r') as f :
         body = f.read()
     body = body.encode('utf-8')
-    f.close()
     return body
 
 def create_2key_and_2data(body) :
@@ -501,8 +514,8 @@ def create_2key_and_2data(body) :
     hash1, hash2 = twoChannelStore(b64encode(body1).decode('utf-8'), b64encode(body2).decode('utf-8'))
     return key1, key2, iv, hash1, hash2
 
-def save_credential_in_file(current_path, key1, key2, iv) :
-    credential_path = os.path.join(current_path, 'app', "file", "credential.json") # 경로 병합해 새 경로 생성
+def save_credential_in_file(key1, key2, iv) :
+    credential_path = os.path.join(provider_path, "credential.json") # 경로 병합해 새 경로 생성
     with open(credential_path, 'w', encoding='utf-8') as f :
         content = {
             'key1': b64encode(key1).decode('utf-8'),
@@ -511,40 +524,63 @@ def save_credential_in_file(current_path, key1, key2, iv) :
         }
         content = json.dumps(content, ensure_ascii=False, indent="\t") # json으로 변환
         f.write(content) # 파일에 쓰기
-    f.close()
-    return True
 
 
 
 def providerSFTP_get(title) :
-    sftp_path = f'/repo_test/provider/{title}' # SFTP 경로
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
-    file_path = os.path.join(current_path, 'app', 'file', title) # 경로 병합해 새 경로 생성
+    sftp_path = os.path.join(provider_sftp_path, title) # SFTP 경로
+    file_path = os.path.join(provider_path, title) # 경로 병합해 새 경로 생성
 
-    sftp.get(sftp_path, file_path) # 파일 다운로드
-    return file_path, current_path
+    try: # SFTP
+        transport = paramiko.Transport((host, port)) # transport 열기
+        transport.connect(None, username, password) # 사용사 인증
+        sftp = paramiko.SFTPClient.from_transport(transport) # 시
+        sftp.get(sftp_path, file_path) # 파일 다운로드
+
+        if sftp :
+            sftp.close()
+        if transport :
+            transport.close()
+    except SSHException :
+        print('### SFTPClient error ###')
+    return file_path
 
 def providerSFTP_send_data_consumerSFTP(hash1, hash2) :
-    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
-    print(consumerSFTP, file=sys.stdout)
+    consumerSFTP = [f'{consumer_sftp_path}/{hash1}', f'{consumer_sftp_path}/{hash2}']
 
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
     file_path = []
-    file_path.append(os.path.join(current_path, 'app', 'file', hash1))
-    file_path.append(os.path.join(current_path, 'app', 'file', hash2))
-    print(file_path, file=sys.stdout)
+    file_path.append(os.path.join(provider_path, hash1))
+    file_path.append(os.path.join(provider_path, hash2))
 
-    sftp.put(file_path[0], consumerSFTP[0])
-    sftp.put(file_path[1], consumerSFTP[1])
+    try: # SFTP
+        transport = paramiko.Transport((host, port)) # transport 열기
+        transport.connect(None, username, password) # 사용사 인증
+        sftp = paramiko.SFTPClient.from_transport(transport) # 시
+        sftp.put(file_path[0], consumerSFTP[0])
+        sftp.put(file_path[1], consumerSFTP[1])
+        if sftp :
+            sftp.close()
+        if transport :
+            transport.close()
+    except SSHException :
+        print('### SFTPClient error ###')
+
 
 def consumerSFPT_get_body(hash1, hash2) :
-    consumerSFTP = [f'/repo_test/consumer/{hash1}', f'/repo_test/consumer/{hash2}']
-
-    current_path = os.getcwd() # 현재 working directory 경로 가져오기
+    consumerSFTP = [f'{consumer_sftp_path}/{hash1}', f'{consumer_sftp_path}/{hash2}']
     file_path = []
-    file_path.append(os.path.join(current_path, 'app', 'consumer_file', hash1))
-    file_path.append(os.path.join(current_path, 'app', 'consumer_file', hash2))
-    print(file_path, file=sys.stdout)
+    file_path.append(os.path.join(consumer_path, hash1))
+    file_path.append(os.path.join(consumer_path, hash2))
 
-    sftp.get(consumerSFTP[0], file_path[0])
-    sftp.get(consumerSFTP[1], file_path[1])
+    try: # SFTP
+        transport = paramiko.Transport((host, port)) # transport 열기
+        transport.connect(None, username, password) # 사용사 인증
+        sftp = paramiko.SFTPClient.from_transport(transport) # 시
+        sftp.get(consumerSFTP[0], file_path[0])
+        sftp.get(consumerSFTP[1], file_path[1])
+        if sftp :
+            sftp.close()
+        if transport :
+            transport.close()
+    except SSHException :
+        print('### SFTPClient error ###')
