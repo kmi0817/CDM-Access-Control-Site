@@ -1,8 +1,10 @@
+from paramiko.ssh_exception import SSHException
 from app import app
 from flask import render_template, session, request, json, send_file
 import paramiko
 import random
 from time import time
+import time
 import os.path
 import sys
 import requests
@@ -14,15 +16,9 @@ from cryptography.hazmat.backends import default_backend
 # 로그인 정보
 root_email, root_password = "asd@asd.com", "asd"
 
-# SFTP
-    # transport 열기
+# SFTP 정보
 host, port = '220.149.241.75', 3302
-transport = paramiko.Transport((host, port))
-    # 사용사 인증
 username, password = "aiiaabc_5", "aiia&abc!tjqj5"
-transport.connect(None, username, password)
-    # 시작
-sftp = paramiko.SFTPClient.from_transport(transport)
 
 @app.route('/')
 @app.route('/irb')
@@ -250,7 +246,27 @@ def provider_data() :
     if 'Provider_receiveCredential' in session :
         authorization = True
 
-    return render_template('provider_data.html', authorization=authorization)
+        try : # SFTP
+            transport = paramiko.Transport((host, port)) # transport 열기
+            transport.connect(None, username, password) # 사용사 인증
+            sftp = paramiko.SFTPClient.from_transport(transport) # 시작
+
+            file_list = sftp.listdir('/repo_test/provider') # provider SFTP 내 파일 목록 가져오기
+            file_dict = dict() # 빈 딕셔너리
+            index = 1
+            for file in file_list :
+                file_dict[index] = file # 딕셔너리에 파일 추가
+                index = index + 1
+            if sftp :
+                sftp.close()
+            if transport :
+                transport.close()
+        except SSHException :
+            print('### SFTPClien error ###')
+            file_list = ['Unable to load files in SFTP']
+
+        
+    return render_template('provider_data.html', authorization=authorization, file_dict=file_dict)
 
 @app.route('/provider/receive-credential', methods=['POST'])
 def provider_receive_credential() :

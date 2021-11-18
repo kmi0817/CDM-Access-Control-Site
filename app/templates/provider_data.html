@@ -142,10 +142,11 @@
                                                             width: 600,
                                                             autoheight: true,
                                                         },
-                                                        data: `[
-                                                                {"id":1,"title":"Publictest.txt"},
-                                                                {"id":2,"title":"color.json"}
-                                                            ]`
+                                                        data: [
+                                                            {% for index, title in file_dict.items() %}
+                                                            {'id': `{{index}}`, 'title': `{{title}}`},
+                                                            {% endfor %}
+                                                        ]
                                                     }
                                                 ]
                                             },
