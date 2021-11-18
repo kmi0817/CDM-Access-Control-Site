@@ -24,8 +24,7 @@ flask run
 - IRB/Consumer id, password
 
 5. Errors
-- 1) [/provider/data] SFTP 내 존재하는 파일을 리스트 형식으로 출력 불가 (파일 목까지 사용해야 SFTP에 접근 가능함)
-- 2) [암호화, 복호화 코드 모듈화] 외부 모듈로 생성하여 routes.py에 import 하면 에러 발생 (circular import 인 듯함)
+1) [암호화, 복호화 코드 모듈화] 외부 모듈로 생성하여 routes.py에 import 하면 에러 발생 (circular import 인 듯함)
 
 6. Reference
 - 파일 다운로드: https://roytuts.com/how-to-download-file-using-python-flask/
