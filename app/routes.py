@@ -340,7 +340,6 @@ def consumer_data() :
         consumerSFPT_get_body(hash1, hash2) # SFTP에서 로컬로 파일 다운로드
 
         body1, body2 = twoChannelLoad(hash1, hash2) # 파일 암호화된 body 가져오기
-
         body1 = b64decode(body1.encode('utf-8'))
         body2 = b64decode(body2.encode('utf-8'))
 
@@ -350,7 +349,7 @@ def consumer_data() :
         iv = b64decode(data_credential['seed'].encode('utf-8'))
 
         body = twoChannelDecrytion(key1, key2, iv, body1, body2)
-        body = body.decode('utf-8') # byte array -> string
+        body = body.decode('utf-8').replace('\u0000', '') # byte array -> string
 
         title = session['selected_file']
         file_path = os.path.join(consumer_path, title)
