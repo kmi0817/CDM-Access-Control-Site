@@ -396,6 +396,7 @@ def consumer_process_signinout() :
             with requests.delete(f'http://0.0.0.0:8061/connections/{conn_id}') as irb :
                 print(irb.json())
         session.pop('consumer_createInvitation', None)
+        session.pop('Researcher_consumerreceiveInvitation', None)
         session.pop('Consumer_signin', None)
         session.pop('consumer_sendCredential', None)
         session.pop('Consumer_receiveCredential', None)
