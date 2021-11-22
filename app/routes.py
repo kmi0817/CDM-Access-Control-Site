@@ -75,42 +75,43 @@ def create_invitation_server(server) :
     }
     return 'SUCCESS'
 
-@app.route('/irb/create-creddef', methods=['POST'])
-def irb_create_schema() :
-    # Schmea Creation
-    version = format(
-            "%d.%d.%d"
-            % (random.randint(1, 101), random.randint(1, 101), random.randint(1, 101))
-    )
+## credential-definition 등록 과정
+# @app.route('/irb/create-creddef', methods=['POST'])
+# def irb_create_schema() :
+#     # Schmea Creation
+#     version = format(
+#             "%d.%d.%d"
+#             % (random.randint(1, 101), random.randint(1, 101), random.randint(1, 101))
+#     )
 
-    schema_body = {
-        "schema_name": "IRB schema",
-        "schema_version": version,
-        "attributes": ["name", "affiliation", "role",
-            "GCP", "IRB_no", "approved_date", "timestamp"],
-    }
+#     schema_body = {
+#         "schema_name": "IRB schema",
+#         "schema_version": version,
+#         "attributes": ["name", "affiliation", "role",
+#             "GCP", "IRB_no", "approved_date", "timestamp"],
+#     }
 
-    with requests.post('http://0.0.0.0:8011/schemas', json=schema_body) as schema_res :
-        schema_id = schema_res.json()['schema_id']
+#     with requests.post('http://0.0.0.0:8011/schemas', json=schema_body) as schema_res :
+#         schema_id = schema_res.json()['schema_id']
 
-    # Credential-Definition Creation
-    support_revocation = False
-    TAILS_FILE_COUNT=100
-    credential_definition_body = {
-        "schema_id": schema_id,
-        "support_revocation": support_revocation,
-        "revocation_registry_size": TAILS_FILE_COUNT,
-    }
+#     # Credential-Definition Creation
+#     support_revocation = False
+#     TAILS_FILE_COUNT=100
+#     credential_definition_body = {
+#         "schema_id": schema_id,
+#         "support_revocation": support_revocation,
+#         "revocation_registry_size": TAILS_FILE_COUNT,
+#     }
 
-    with requests.post('http://0.0.0.0:8011/credential-definitions',json=credential_definition_body) as creddef_res :
-        credential_definition_id = creddef_res.json()['credential_definition_id']
+#     with requests.post('http://0.0.0.0:8011/credential-definitions',json=credential_definition_body) as creddef_res :
+#         credential_definition_id = creddef_res.json()['credential_definition_id']
 
-    # session['IRB_createCreddef'] = {
-    #     'schema_id': schema_id,
-    #     'credential_definition_id' : credential_definition_id
-    # }
+#     # session['IRB_createCreddef'] = {
+#     #     'schema_id': schema_id,
+#     #     'credential_definition_id' : credential_definition_id
+#     # }
     
-    return 'SUCCESS'
+#     return 'SUCCESS'
 
 
 
@@ -126,6 +127,7 @@ def researcherIrb() :
         my_did = session['Researcher_irbreceiveInvitation']['my_did']
         with requests.get('http://0.0.0.0:8011/credential-definitions/created') as created_res :
             cred_def_ids = created_res.json()['credential_definition_ids']
+            cred_def_ids = set(cred_def_ids)
     return render_template('researcher_irb.html', invitation=invitation, my_did=my_did, cred_def_ids=cred_def_ids)
 
 @app.route('/receive-invitation/<server>', methods=['POST'])
@@ -148,6 +150,7 @@ def researcherIrb_issue_credential() :
     values = request.get_json(force=True)
     cred_def_id = values['credential_definition_id']
 
+        ## 직접 등록한 credential-definition에 맞춰 credential 발급
     cred_attrs=  {
         "name": "Alice",
         "affiliation": "CNUH",

@@ -102,11 +102,12 @@
                                                             click: () => {
                                                                 webix.ajax().post("/create-invitation/irb")
                                                                 .then((res) => {
-                                                                    webix.ajax().post("/irb/create-creddef")
-                                                                    .then((res) => {
-                                                                        alert("Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
-                                                                    })
-                                                                    .fail(() => { alert("IRB: credential-definition 등록 과정 중 오류 발생"); });
+                                                                    alert("Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
+                                                                    // webix.ajax().post("/irb/create-creddef")
+                                                                    // .then((res) => {
+                                                                    //     alert("Researcher 페이지의 IRB connection 메뉴로 이동하세요.");
+                                                                    // })
+                                                                    // .fail(() => { alert("IRB: credential-definition 등록 과정 중 오류 발생"); });
                                                                 })
                                                                 .fail(() => { alert("IRB: 초대장 생성 과정 중 오류 발생"); });
                                                             }
